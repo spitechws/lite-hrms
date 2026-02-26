@@ -4,6 +4,9 @@ import {
   deleteEmployee,
   listEmployees,
 } from "../api/employees";
+import InputField from "./ui/InputField";
+import SelectField from "./ui/SelectField";
+import PrimaryButton from "./ui/PrimaryButton";
 
 function EmployeeList({ token }) {
   const [employees, setEmployees] = useState([]);
@@ -16,6 +19,22 @@ function EmployeeList({ token }) {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const generateNextEmployeeId = (existingEmployees) => {
+    if (!existingEmployees || existingEmployees.length === 0) {
+      return "EMP-0001";
+    }
+
+    const maxNumber = existingEmployees.reduce((max, e) => {
+      const match = typeof e.employee_id === "string" && e.employee_id.match(/^EMP-(\d+)$/);
+      if (!match) return max;
+      const num = parseInt(match[1], 10);
+      return Number.isNaN(num) ? max : Math.max(max, num);
+    }, 0);
+
+    const next = maxNumber + 1;
+    return `EMP-${String(next).padStart(4, "0")}`;
+  };
 
   const loadEmployees = () => {
     setLoading(true);
@@ -39,8 +58,8 @@ function EmployeeList({ token }) {
     e.preventDefault();
     setSaving(true);
     setError("");
-    // Generate a simple employee_id on the client side.
-    const generatedId = `EMP-${Date.now()}`;
+    // Generate a sequential employee_id like EMP-0001, EMP-0002, ...
+    const generatedId = generateNextEmployeeId(employees);
     const payload = { employee_id: generatedId, ...form };
     createEmployee(payload, token)
       .then(() => {
@@ -132,65 +151,42 @@ function EmployeeList({ token }) {
           Add Employee
         </h2>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Full name
-            </label>
-            <input
-              name="full_name"
-              value={form.full_name}
-              onChange={handleChange}
-              placeholder="John Doe"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="john@example.com"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Department
-            </label>
-            <select
-              name="department"
-              value={form.department}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              <option value="Development">Development</option>
-              <option value="QA">QA</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Temporary password
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Set a login password"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className="inline-flex w-full items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+          <InputField
+            label="Full name"
+            name="full_name"
+            value={form.full_name}
+            onChange={handleChange}
+            placeholder="John Doe"
+          />
+          <InputField
+            label="Email"
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="john@example.com"
+          />
+          <SelectField
+            label="Department"
+            name="department"
+            value={form.department}
+            onChange={handleChange}
           >
+            <option value="Development">Development</option>
+            <option value="QA">QA</option>
+          </SelectField>
+          <InputField
+            label="Temporary password"
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Set a login password"
+            withToggle
+          />
+          <PrimaryButton type="submit" disabled={saving}>
             {saving ? "Saving…" : "Save"}
-          </button>
+          </PrimaryButton>
         </form>
       </div>
     </div>

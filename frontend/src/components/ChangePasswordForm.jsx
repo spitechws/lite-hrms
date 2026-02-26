@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { changePassword } from "../api/auth";
+import InputField from "./ui/InputField";
+import PrimaryButton from "./ui/PrimaryButton";
 
 function ChangePasswordForm({ token, onSuccess }) {
   const [form, setForm] = useState({
@@ -51,51 +53,41 @@ function ChangePasswordForm({ token, onSuccess }) {
         Change password
       </h2>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <div>
-          <label className="block text-xs font-medium text-slate-700">
-            Current password
-          </label>
-          <input
+        <InputField
+          label="Current password"
+          type="password"
+          name="current_password"
+          value={form.current_password}
+          onChange={handleChange}
+          autoComplete="current-password"
+          withToggle
+          size="sm"
+        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <InputField
+            label="New password"
             type="password"
-            name="current_password"
-            value={form.current_password}
+            name="new_password"
+            value={form.new_password}
             onChange={handleChange}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            autoComplete="new-password"
+            withToggle
+            size="sm"
+          />
+          <InputField
+            label="Confirm new password"
+            type="password"
+            name="confirm_new_password"
+            value={form.confirm_new_password}
+            onChange={handleChange}
+            autoComplete="new-password"
+            withToggle
+            size="sm"
           />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="block text-xs font-medium text-slate-700">
-              New password
-            </label>
-            <input
-              type="password"
-              name="new_password"
-              value={form.new_password}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-700">
-              Confirm new password
-            </label>
-            <input
-              type="password"
-              name="confirm_new_password"
-              value={form.confirm_new_password}
-              onChange={handleChange}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            />
-          </div>
-        </div>
-        <button
-          type="submit"
-          disabled={saving}
-          className="inline-flex items-center justify-center rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <PrimaryButton type="submit" disabled={saving} size="sm">
           {saving ? "Saving…" : "Update password"}
-        </button>
+        </PrimaryButton>
       </form>
       {error && (
         <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700">

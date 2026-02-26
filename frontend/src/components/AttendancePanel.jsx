@@ -4,6 +4,9 @@ import {
   getAttendanceForEmployee,
   markAttendance,
 } from "../api/attendance";
+import InputField from "./ui/InputField";
+import SelectField from "./ui/SelectField";
+import PrimaryButton from "./ui/PrimaryButton";
 
 function AttendancePanel({ token, currentUser }) {
   const [employees, setEmployees] = useState([]);
@@ -120,42 +123,34 @@ function AttendancePanel({ token, currentUser }) {
           )}
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700">
-                Date
-              </label>
-              <input
+              <InputField
+                label="Date"
                 type="date"
+                name="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                max={todayString}
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                className="mt-1"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700">
-                Status
-              </label>
-              <select
+              <SelectField
+                label="Status"
+                name="status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
               >
                 <option value="Present">Present</option>
                 <option value="Absent">Absent</option>
-              </select>
+              </SelectField>
             </div>
           </div>
-          <button
-            className="inline-flex w-full items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
-            type="submit"
-            disabled={loading || todayAlreadyMarked}
-          >
+          <PrimaryButton type="submit" disabled={loading || todayAlreadyMarked}>
             {todayAlreadyMarked
               ? "Already marked for today"
               : loading
                 ? "Saving…"
                 : "Save"}
-          </button>
+          </PrimaryButton>
         </form>
         {error && (
           <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">

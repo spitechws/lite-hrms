@@ -15,30 +15,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 auth_service = AuthServiceFactory.create()
 
 
-@router.post(
-    "/register",
-    response_model=schemas.User,
-    status_code=status.HTTP_201_CREATED,
-)
-def register_user(
-    user_in: schemas.UserCreate, db: Session = Depends(get_db)
-):
-    if crud.get_user_by_username(db, user_in.username):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Username already registered.",
-        )
-    if crud.get_user_by_email(db, user_in.email):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered.",
-        )
-
-    password_hash = auth_service.get_password_hash(user_in.password)
-    user = crud.create_user(db, user_in, password_hash)
-    return user
-
-
 @router.post("/login", response_model=schemas.LoginResponse)
 def login_for_access_token(
     payload: schemas.LoginRequest,
@@ -194,4 +170,40 @@ def list_users(
 ):
     # For now, any authenticated user can list users.
     return crud.get_users(db)
+
+
+@router.post(
+    "/users",
+    response_model=schemas.User,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_user(
+    user_in: schemas.UserCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if crud.get_user_by_username(db, user_in.username):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username already registered.",
+        )
+    if crud.get_user_by_email(db, user_in.email):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email already registered.",
+        )
+
+    password_hash = auth_service.get_password_hash(user_in.password)
+    user = crud.create_user(db, user_in, password_hash)
+    return user
+
+
+@router.put("/users/{user_id}", response_model=schemas.User)
+def update_user(
+    user_id: int,
+    user_in: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return crud.update_user(db, user_id, user_in)
 

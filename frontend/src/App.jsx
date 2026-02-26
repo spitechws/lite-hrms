@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { login, register, getCurrentUser } from "./api/auth";
+import { Routes, Route, Navigate, NavLink, useNavigate } from "react-router-dom";
+import { login, getCurrentUser } from "./api/auth";
 import EmployeeList from "./components/EmployeeList";
 import AttendancePanel from "./components/AttendancePanel";
 import UsersList from "./components/UsersList";
 import LoginForm from "./components/LoginForm";
-import RegisterForm from "./components/RegisterForm";
 import ChangePasswordForm from "./components/ChangePasswordForm";
 
 function App() {
   const [token, setToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
-  const [activeView, setActiveView] = useState("employees");
   const [loadingUser, setLoadingUser] = useState(true);
   const [error, setError] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const isEmployee = currentUser?.role === "employee";
 
@@ -36,7 +36,6 @@ function App() {
       try {
         const parsed = JSON.parse(savedUser);
         setCurrentUser(parsed);
-        setActiveView(parsed.role === "employee" ? "attendance" : "employees");
         setLoadingUser(false);
         return;
       } catch {
@@ -48,7 +47,6 @@ function App() {
       .then((user) => {
         setCurrentUser(user);
         window.localStorage.setItem("hrms_user", JSON.stringify(user));
-        setActiveView(user.role === "employee" ? "attendance" : "employees");
       })
       .catch(() => {
         window.localStorage.removeItem("hrms_token");
@@ -74,19 +72,9 @@ function App() {
       setToken(access_token);
       setRefreshToken(refresh_token);
       setCurrentUser(user);
-      setActiveView(user.role === "employee" ? "attendance" : "employees");
+      navigate(user.role === "employee" ? "/attendance" : "/employees");
     } catch (err) {
       setError(err.message || "Login failed");
-    }
-  };
-
-  const handleRegister = async (data) => {
-    setError("");
-    try {
-      await register(data);
-      await handleLogin(data.username, data.password);
-    } catch (err) {
-      setError(err.message || "Registration failed");
     }
   };
 
@@ -111,29 +99,37 @@ function App() {
 
   if (!token || !currentUser) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-5xl">
-          <header className="mb-8 text-center">
-            <h1 className="text-3xl font-semibold text-slate-900">
-              HRMS Lite
-            </h1>
-            <p className="mt-2 text-sm text-slate-500">
-              Simple HR management for employees and attendance.
-            </p>
-          </header>
-          <div className="max-w-md mx-auto rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">
-              Login
-            </h2>
-            <LoginForm onLogin={handleLogin} />
-          </div>
-          {error && (
-            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-              {error}
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+              <div className="w-full max-w-5xl">
+                <header className="mb-8 text-center">
+                  <h1 className="text-3xl font-semibold text-slate-900">
+                    HRMS Lite
+                  </h1>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Simple HR management for employees and attendance.
+                  </p>
+                </header>
+                <div className="max-w-md mx-auto rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                    Login
+                  </h2>
+                  <LoginForm onLogin={handleLogin} />
+                  {error && (
+                    <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                      {error}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
+          }
+        />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
     );
   }
 
@@ -173,17 +169,19 @@ function App() {
 
           <nav className="flex-1 space-y-1">
             {menuItems.map((tab) => (
-              <button
+              <NavLink
                 key={tab.id}
-                className={`flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium ${
-                  activeView === tab.id
-                    ? "bg-sky-600 text-white shadow-sm"
-                    : "text-slate-700 hover:bg-slate-100"
-                }`}
-                onClick={() => setActiveView(tab.id)}
+                to={"/" + tab.id}
+                className={({ isActive }) =>
+                  `flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium ${
+                    isActive
+                      ? "bg-sky-600 text-white shadow-sm"
+                      : "text-slate-700 hover:bg-slate-100"
+                  }`
+                }
               >
                 {tab.label}
-              </button>
+              </NavLink>
             ))}
           </nav>
 
@@ -220,17 +218,19 @@ function App() {
             {/* Simple top nav for small screens */}
             <nav className="flex flex-wrap gap-2 md:hidden">
               {menuItems.map((tab) => (
-                <button
+                <NavLink
                   key={tab.id}
-                  className={`inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ${
-                    activeView === tab.id
-                      ? "bg-sky-600 text-white shadow-sm"
-                      : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
-                  }`}
-                  onClick={() => setActiveView(tab.id)}
+                  to={"/" + tab.id}
+                  className={({ isActive }) =>
+                    `inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ${
+                      isActive
+                        ? "bg-sky-600 text-white shadow-sm"
+                        : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                    }`
+                  }
                 >
                   {tab.label}
-                </button>
+                </NavLink>
               ))}
             </nav>
 
@@ -267,7 +267,7 @@ function App() {
                     <button
                       className="block w-full px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50"
                       onClick={() => {
-                        setActiveView("profile");
+                        navigate("/profile");
                         setUserMenuOpen(false);
                       }}
                     >
@@ -276,7 +276,7 @@ function App() {
                     <button
                       className="block w-full px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50"
                       onClick={() => {
-                        setActiveView("change-password");
+                        navigate("/change-password");
                         setUserMenuOpen(false);
                       }}
                     >
@@ -311,68 +311,99 @@ function App() {
           )}
 
           <main className="flex-1 space-y-4">
-            {activeView === "profile" && (
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm max-w-xl">
-                <h2 className="text-base font-semibold text-slate-900 mb-3">
-                  Profile
-                </h2>
-                <dl className="space-y-2 text-sm text-slate-700">
-                  <div className="flex justify-between">
-                    <dt className="font-medium text-slate-500">Name</dt>
-                    <dd>
-                      {currentUser.full_name ||
-                        currentUser.username ||
-                        currentUser.email}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="font-medium text-slate-500">Email</dt>
-                    <dd>{currentUser.email}</dd>
-                  </div>
-                  {currentUser.employee_id && (
-                    <div className="flex justify-between">
-                      <dt className="font-medium text-slate-500">
-                        Employee ID
-                      </dt>
-                      <dd>{currentUser.employee_id}</dd>
-                    </div>
-                  )}
-                  {currentUser.department && (
-                    <div className="flex justify-between">
-                      <dt className="font-medium text-slate-500">
-                        Department
-                      </dt>
-                      <dd>{currentUser.department}</dd>
-                    </div>
-                  )}
-                  {currentUser.role && (
-                    <div className="flex justify-between">
-                      <dt className="font-medium text-slate-500">Role</dt>
-                      <dd>{currentUser.role}</dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-            )}
-
-            {activeView === "change-password" && (
-              <ChangePasswordForm
-                token={token}
-                onSuccess={() => {
-                  setError("");
-                }}
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <Navigate
+                    to={isEmployee ? "/attendance" : "/employees"}
+                    replace
+                  />
+                }
               />
-            )}
-
-            {!isEmployee && activeView === "employees" && (
-              <EmployeeList token={token} />
-            )}
-            {activeView === "attendance" && (
-              <AttendancePanel token={token} currentUser={currentUser} />
-            )}
-            {!isEmployee && activeView === "users" && (
-              <UsersList token={token} />
-            )}
+              <Route
+                path="/employees"
+                element={
+                  !isEmployee ? (
+                    <EmployeeList token={token} />
+                  ) : (
+                    <Navigate to="/attendance" replace />
+                  )
+                }
+              />
+              <Route
+                path="/attendance"
+                element={
+                  <AttendancePanel token={token} currentUser={currentUser} />
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  !isEmployee ? (
+                    <UsersList token={token} />
+                  ) : (
+                    <Navigate to="/attendance" replace />
+                  )
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm max-w-xl">
+                    <h2 className="text-base font-semibold text-slate-900 mb-3">
+                      Profile
+                    </h2>
+                    <dl className="space-y-2 text-sm text-slate-700">
+                      <div className="flex justify-between">
+                        <dt className="font-medium text-slate-500">Name</dt>
+                        <dd>
+                          {currentUser.full_name ||
+                            currentUser.username ||
+                            currentUser.email}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="font-medium text-slate-500">Email</dt>
+                        <dd>{currentUser.email}</dd>
+                      </div>
+                      {currentUser.employee_id && (
+                        <div className="flex justify-between">
+                          <dt className="font-medium text-slate-500">
+                            Employee ID
+                          </dt>
+                          <dd>{currentUser.employee_id}</dd>
+                        </div>
+                      )}
+                      {currentUser.department && (
+                        <div className="flex justify-between">
+                          <dt className="font-medium text-slate-500">
+                            Department
+                          </dt>
+                          <dd>{currentUser.department}</dd>
+                        </div>
+                      )}
+                      {currentUser.role && (
+                        <div className="flex justify-between">
+                          <dt className="font-medium text-slate-500">Role</dt>
+                          <dd>{currentUser.role}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  </div>
+                }
+              />
+              <Route
+                path="/change-password"
+                element={
+                  <ChangePasswordForm
+                    token={token}
+                    onSuccess={() => setError("")}
+                  />
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </main>
         </div>
       </div>

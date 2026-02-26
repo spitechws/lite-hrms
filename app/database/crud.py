@@ -52,6 +52,39 @@ def create_user(
     return db_user
 
 
+def update_user(
+    db: Session, user_id: int, user_in: schemas.UserUpdate
+) -> models.User:
+    user = get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    # Do not allow this helper to modify employee records.
+    if user.role == "employee":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Use the employee module to manage employees.",
+        )
+
+    update_data = user_in.dict(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(user, field, value)
+
+    try:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username or email already exists.",
+        )
+
+    return user
+
+
 def get_users(db: Session) -> List[models.User]:
     """
     Return all non-employee users (e.g. admins, managers, standard users).
