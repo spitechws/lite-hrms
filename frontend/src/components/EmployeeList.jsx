@@ -9,7 +9,6 @@ function EmployeeList({ token }) {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    employee_id: "",
     full_name: "",
     email: "",
     department: "",
@@ -39,10 +38,12 @@ function EmployeeList({ token }) {
     e.preventDefault();
     setSaving(true);
     setError("");
-    createEmployee(form, token)
+    // Generate a simple employee_id on the client side.
+    const generatedId = `EMP-${Date.now()}`;
+    const payload = { employee_id: generatedId, ...form };
+    createEmployee(payload, token)
       .then(() => {
         setForm({
-          employee_id: "",
           full_name: "",
           email: "",
           department: "",
@@ -107,15 +108,6 @@ function EmployeeList({ token }) {
       <div className="card">
         <h2>Add Employee</h2>
         <form onSubmit={handleSubmit} className="form">
-          <label className="field">
-            <span>Employee ID</span>
-            <input
-              name="employee_id"
-              value={form.employee_id}
-              onChange={handleChange}
-              placeholder="EMP001"
-            />
-          </label>
           <label className="field">
             <span>Full name</span>
             <input

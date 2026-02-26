@@ -1,4 +1,6 @@
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -13,10 +15,18 @@ database.init_db()
 
 app = FastAPI(title="HRMS Lite Backend", version="0.1.0")
 
-# Serve static files from 'public' directory under /public
-app.mount("/public", StaticFiles(directory="public", html=True), name="static")
+# Include API routers
+app.include_router(api_router, prefix="/api/v1")
 
-# Allow CORS for frontend
+# Serve built frontend (Vite) from frontend/dist at the root.
+frontend_dist = Path(__file__).resolve().parent / "frontend" / "dist"
+app.mount(
+    "/",
+    StaticFiles(directory=str(frontend_dist), html=True),
+    name="frontend",
+)
+
+# Allow CORS for frontend (useful for dev / API calls)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -24,14 +34,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Include API routers
-app.include_router(api_router, prefix="/api/v1")
-
-
-@app.get("/")
-def read_root():
-    return {"message": "HRMS Lite Backend Running"}
 
 
 if __name__ == "__main__":
