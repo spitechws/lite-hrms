@@ -12,9 +12,14 @@ function EmployeeList({ token }) {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    full_name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     department: "Development",
+    gender: "",
+    address: "",
+    pin: "",
+    city: "",
     password: "",
   });
   const [saving, setSaving] = useState(false);
@@ -64,9 +69,14 @@ function EmployeeList({ token }) {
     createEmployee(payload, token)
       .then(() => {
         setForm({
-          full_name: "",
+          first_name: "",
+          last_name: "",
           email: "",
-          department: "",
+          department: "Development",
+          gender: "",
+          address: "",
+          pin: "",
+          city: "",
           password: "",
         });
         loadEmployees();
@@ -101,7 +111,10 @@ function EmployeeList({ token }) {
                     Employee ID
                   </th>
                   <th className="px-3 py-2 text-left font-medium text-slate-600">
-                    Name
+                    First name
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-slate-600">
+                    Last name
                   </th>
                   <th className="px-3 py-2 text-left font-medium text-slate-600">
                     Email
@@ -119,7 +132,10 @@ function EmployeeList({ token }) {
                       {e.employee_id}
                     </td>
                     <td className="px-3 py-2 text-slate-700">
-                      {e.full_name}
+                      {e.first_name || e.full_name}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700">
+                      {e.last_name || ""}
                     </td>
                     <td className="px-3 py-2 text-slate-700">{e.email}</td>
                     <td className="px-3 py-2 text-slate-700">
@@ -152,11 +168,19 @@ function EmployeeList({ token }) {
         </h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <InputField
-            label="Full name"
-            name="full_name"
-            value={form.full_name}
+            label="First name"
+            name="first_name"
+            value={form.first_name}
             onChange={handleChange}
-            placeholder="John Doe"
+            placeholder="John"
+            required
+          />
+          <InputField
+            label="Last name"
+            name="last_name"
+            value={form.last_name}
+            onChange={handleChange}
+            placeholder="Doe"
           />
           <InputField
             label="Email"
@@ -166,6 +190,40 @@ function EmployeeList({ token }) {
             onChange={handleChange}
             placeholder="john@example.com"
           />
+          <SelectField
+            label="Gender"
+            name="gender"
+            value={form.gender}
+            onChange={handleChange}
+          >
+            <option value="">Select gender (optional)</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </SelectField>
+          <InputField
+            label="Address"
+            name="address"
+            value={form.address}
+            onChange={handleChange}
+            placeholder="Street, area"
+          />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <InputField
+              label="PIN code"
+              name="pin"
+              value={form.pin}
+              onChange={handleChange}
+              placeholder="Postal code"
+            />
+            <InputField
+              label="City"
+              name="city"
+              value={form.city}
+              onChange={handleChange}
+              placeholder="City"
+            />
+          </div>
           <SelectField
             label="Department"
             name="department"

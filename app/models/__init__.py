@@ -23,7 +23,15 @@ class User(Base):
 
     # Employee-related fields
     employee_id = Column(String, unique=True, index=True, nullable=True)
+    # Keep full_name for backwards compatibility and display.
     full_name = Column(String, nullable=True)
+    # New structured profile fields for employees
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    gender = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    pin = Column(String, nullable=True)
+    city = Column(String, nullable=True)
     department = Column(String, nullable=True)
 
     # Role: e.g. "user", "admin", "employee"
@@ -59,4 +67,17 @@ class Attendance(Base):
     date = Column(Date, nullable=False)
     status = Column(String, nullable=False)  # Present / Absent
     employee = relationship("User", back_populates="attendance")
+
+
+class Department(Base):
+    """
+    Simple department master table so admins can manage departments.
+    Employees still store the department name as a string for now.
+    """
+
+    __tablename__ = "departments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+    is_active = Column(Boolean, default=True)
 

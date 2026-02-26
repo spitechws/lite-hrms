@@ -142,9 +142,20 @@ def create_employee(
     """
     db_employee = models.User(
         employee_id=employee.employee_id,
-        full_name=employee.full_name,
+        # Structured name fields; also keep full_name in sync for display.
+        first_name=employee.first_name,
+        last_name=employee.last_name,
+        full_name=(
+            f"{employee.first_name} {employee.last_name}".strip()
+            if employee.last_name
+            else employee.first_name
+        ),
         email=employee.email,
         department=employee.department,
+        gender=employee.gender,
+        address=employee.address,
+        pin=employee.pin,
+        city=employee.city,
         role="employee",
         is_active=True,
     )
@@ -220,4 +231,76 @@ def get_attendance_for_employee(db: Session, employee_id: int):
         .filter(models.Attendance.employee_id == employee_id)
         .all()
     )
+
+
+# Department management
+def get_departments(db: Session) -> List[models.Department]:
+    return db.query(models.Department).order_by(models.Department.name).all()
+
+
+def get_department(db: Session, department_id: int) -> Optional[models.Department]:
+    return (
+        db.query(models.Department)
+        .filter(models.Department.id == department_id)
+        .first()
+    )
+
+
+def create_department(
+    db: Session, department_in: schemas.DepartmentCreate
+) -> models.Department:
+    db_dept = models.Department(
+        name=department_in.name,
+        is_active=department_in.is_active,
+    )
+    db.add(db_dept)
+    try:
+        db.commit()
+        db.refresh(db_dept)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Department with this name already exists.",
+        )
+    return db_dept
+
+
+def update_department(
+    db: Session, department_id: int, department_in: schemas.DepartmentUpdate
+) -> models.Department:
+    dept = get_department(db, department_id)
+    if not dept:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Department not found"
+        )
+
+    update_data = department_in.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(dept, field, value)
+
+    try:
+        db.add(dept)
+        db.commit()
+        db.refresh(dept)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Department with this name already exists.",
+        )
+
+    return dept
+
+
+def delete_department(db: Session, department_id: int) -> models.Department:
+    dept = get_department(db, department_id)
+    if not dept:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Department not found"
+        )
+    db.delete(dept)
+    db.commit()
+    return dept
+
 

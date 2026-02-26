@@ -113,11 +113,16 @@ function AttendancePanel({ token, currentUser }) {
                 onChange={(e) => setSelectedEmployeeId(e.target.value)}
                 className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
               >
-                {employees.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.full_name} ({e.employee_id})
-                  </option>
-                ))}
+                {employees.map((e) => {
+                  const displayName = e.first_name
+                    ? `${e.first_name}${e.last_name ? ` ${e.last_name}` : ""}`
+                    : e.full_name;
+                  return (
+                    <option key={e.id} value={e.id}>
+                      {displayName} ({e.employee_id})
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}

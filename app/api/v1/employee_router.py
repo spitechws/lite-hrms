@@ -13,17 +13,6 @@ auth_service = AuthServiceFactory.create()
 def create_employee(
     employee: schemas.EmployeeCreate, db: Session = Depends(get_db)
 ):
-    if not all(
-        [
-            employee.employee_id,
-            employee.full_name,
-            employee.email,
-            employee.department,
-            employee.password,
-        ]
-    ):
-        raise HTTPException(status_code=422, detail="All fields are required.")
-
     password_hash = auth_service.get_password_hash(employee.password)
     return crud.create_employee(db, employee, password_hash)
 
