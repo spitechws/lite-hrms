@@ -18,10 +18,19 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+  bind = op.get_bind()
+  inspector = sa.inspect(bind)
+  existing_tables = inspector.get_table_names()
+  if "departments" in existing_tables:
+      # Table already exists (likely created via Base.metadata.create_all);
+      # treat this migration as applied.
+      return
+
   op.create_table(
       "departments",
       sa.Column("id", sa.Integer(), nullable=False),
-      sa.Column("name", sa.String(length=255), nullable=False),
+      # Bounded length for MySQL indexed/unique column
+      sa.Column("name", sa.String(length=191), nullable=False),
       sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("1")),
       sa.PrimaryKeyConstraint("id"),
   )

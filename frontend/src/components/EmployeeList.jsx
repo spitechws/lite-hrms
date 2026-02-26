@@ -4,6 +4,7 @@ import {
   deleteEmployee,
   listEmployees,
 } from "../api/employees";
+import { listDepartments } from "../api/departments";
 import InputField from "./ui/InputField";
 import SelectField from "./ui/SelectField";
 import PrimaryButton from "./ui/PrimaryButton";
@@ -11,6 +12,7 @@ import PrimaryButton from "./ui/PrimaryButton";
 function EmployeeList({ token }) {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState([]);
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -52,6 +54,20 @@ function EmployeeList({ token }) {
 
   useEffect(() => {
     loadEmployees();
+    // Load departments for the dropdown; fall back to defaults if none.
+    listDepartments(token)
+      .then((items) => {
+        setDepartments(items);
+        if (items.length > 0) {
+          setForm((prev) => ({
+            ...prev,
+            department: items[0].name,
+          }));
+        }
+      })
+      .catch(() => {
+        // Ignore errors here; the form will still show fallback options.
+      });
   }, []);
 
   const handleChange = (e) => {
@@ -230,8 +246,20 @@ function EmployeeList({ token }) {
             value={form.department}
             onChange={handleChange}
           >
-            <option value="Development">Development</option>
-            <option value="QA">QA</option>
+            {departments.length === 0 ? (
+              <>
+                <option value="Development">Development</option>
+                <option value="QA">QA</option>
+              </>
+            ) : (
+              departments
+                .filter((d) => d.is_active)
+                .map((d) => (
+                  <option key={d.id} value={d.name}>
+                    {d.name}
+                  </option>
+                ))
+            )}
           </SelectField>
           <InputField
             label="Temporary password"

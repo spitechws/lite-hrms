@@ -4,6 +4,7 @@ import { login, getCurrentUser } from "./api/auth";
 import EmployeeList from "./components/EmployeeList";
 import AttendancePanel from "./components/AttendancePanel";
 import UsersList from "./components/UsersList";
+import DepartmentsList from "./components/DepartmentsList";
 import LoginForm from "./components/LoginForm";
 import ChangePasswordForm from "./components/ChangePasswordForm";
 
@@ -139,6 +140,7 @@ function App() {
         { id: "employees", label: "Employees" },
         { id: "attendance", label: "Attendance" },
         { id: "users", label: "Users" },
+        { id: "departments", label: "Departments" },
       ];
 
   return (
@@ -342,6 +344,16 @@ function App() {
                 element={
                   !isEmployee ? (
                     <UsersList token={token} />
+                  ) : (
+                    <Navigate to="/attendance" replace />
+                  )
+                }
+              />
+              <Route
+                path="/departments"
+                element={
+                  !isEmployee ? (
+                    <DepartmentsList token={token} />
                   ) : (
                     <Navigate to="/attendance" replace />
                   )

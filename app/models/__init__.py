@@ -78,6 +78,7 @@ class Department(Base):
     __tablename__ = "departments"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
+    # Bounded length for MySQL (indexed/unique column)
+    name = Column(String(191), unique=True, index=True, nullable=False)
     is_active = Column(Boolean, default=True)
 
