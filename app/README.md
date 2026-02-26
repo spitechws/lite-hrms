@@ -12,7 +12,7 @@ FastAPI backend for a lightweight HRMS with employees, attendance, and JWT‑bas
 
 ### Project layout
 
-- `../main.py` – FastAPI app entrypoint
+- `main.py` – FastAPI app entrypoint
 - `models.py` – SQLAlchemy models (`User`, `Employee`, `Attendance`)
 - `schemas.py` – Pydantic schemas
 - `crud.py` – data access / CRUD helpers
@@ -36,7 +36,15 @@ CORS_ORIGINS=http://localhost:3000
 
 ### Install & run
 
-1. **Install dependencies**
+1. **Create the MySQL database**
+
+In MySQL, create a database (and user if needed) that matches your `DATABASE_URL`, for example:
+
+```sql
+CREATE DATABASE hrms_lite CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+2. **Install dependencies**
 
 From the project root:
 
@@ -46,21 +54,30 @@ pip install -r requirements.txt
 
 This installs from `app/requirements.txt`.
 
-2. **Run database migrations (Alembic)**
+3. **Run database migrations (Alembic)**
 
 From the project root:
 
 ```bash
-alembic revision --autogenerate -m "initial schema"
 alembic upgrade head
 ```
 
-3. **Start the API server**
+4. **Seed the initial admin user (optional but recommended)**
 
 From the project root:
 
 ```bash
-uvicorn main:app --reload
+python -m app.seed_initial_admin
+```
+
+This will create an initial admin user (`admin` / `admin123`) if it does not already exist.
+
+5. **Start the API server**
+
+From the project root:
+
+```bash
+uvicorn app.main:app --reload
 ```
 
 - API base: `http://127.0.0.1:8000/api/v1`

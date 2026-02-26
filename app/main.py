@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -18,8 +17,9 @@ app = FastAPI(title="HRMS Lite Backend", version="0.1.0")
 # Include API routers
 app.include_router(api_router, prefix="/api/v1")
 
-# Serve built frontend (Vite) from frontend/dist at the root.
-frontend_dist = Path(__file__).resolve().parent / "frontend" / "dist"
+# Serve built frontend (Vite) from frontend/dist at the repo root.
+ROOT_DIR = Path(__file__).resolve().parents[1]
+frontend_dist = ROOT_DIR / "frontend" / "dist"
 app.mount(
     "/",
     StaticFiles(directory=str(frontend_dist), html=True),
@@ -39,4 +39,5 @@ app.add_middleware(
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+
