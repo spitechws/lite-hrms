@@ -2,18 +2,20 @@ from functools import lru_cache
 from typing import List
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parents[1]
+load_dotenv(BASE_DIR / ".env")
 
 
 class Settings:
     def __init__(self) -> None:
         # Database
         self.database_url: str = os.getenv(
-            "DATABASE_URL", "sqlite:///./hrms.db"
+            "DATABASE_URL", "sqlite:///./app/hrms.db"
         )
 
         # Auth / JWT
