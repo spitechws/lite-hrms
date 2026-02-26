@@ -13,7 +13,7 @@ FastAPI backend for a lightweight HRMS with employees, attendance, and JWT‑bas
 ### Project layout
 
 - `main.py` – FastAPI app entrypoint
-- `models.py` – SQLAlchemy models (`User`, `Employee`, `Attendance`)
+- `models.py` – SQLAlchemy models (`User`, `Auth`, `Attendance`)
 - `schemas.py` – Pydantic schemas
 - `crud.py` – data access / CRUD helpers
 - `api/` – versioned API routers

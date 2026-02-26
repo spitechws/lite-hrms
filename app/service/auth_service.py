@@ -5,7 +5,7 @@ from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from app import crud
+from app import crud, models
 from app.config import get_settings
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -31,14 +31,46 @@ class AuthService:
         return pwd_context.hash(password)
 
     def authenticate_user(self, db: Session, username: str, password: str):
-        # Allow login with either username or email for convenience.
-        user = crud.get_user_by_username(db, username)
-        if not user:
-            user = crud.get_user_by_email(db, username)
-        if not user:
+        """
+        Authenticate against the Auth table and return the linked User.
+
+        - First, try to find an Auth row by username.
+        - If not found, treat the provided value as an email, look up the User,
+          then find the corresponding Auth row.
+        """
+        # 1) Look up Auth by username directly.
+        auth = db.query(models.Auth).filter(models.Auth.username == username).first()
+
+        # 2) If not found, treat the input as an email and resolve via User.
+        if not auth:
+            user_by_email = crud.get_user_by_email(db, username)
+            if not user_by_email:
+                return None
+
+            auth = (
+                db.query(models.Auth)
+                .filter(
+                    models.Auth.table_name == models.User.__tablename__,
+                    models.Auth.table_id == user_by_email.id,
+                )
+                .first()
+            )
+            if not auth:
+                return None
+
+        # Verify password against the stored hash.
+        if not self.verify_password(password, auth.password_hash):
             return None
-        if not self.verify_password(password, user.password_hash):
+
+        # Resolve the linked user row; for now we only support users.
+        if auth.table_name != models.User.__tablename__:
             return None
+
+        user = (
+            db.query(models.User)
+            .filter(models.User.id == auth.table_id)
+            .first()
+        )
         return user
 
     def create_access_token(

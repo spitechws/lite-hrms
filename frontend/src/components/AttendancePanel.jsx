@@ -8,7 +8,8 @@ import {
 function AttendancePanel({ token, currentUser }) {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const todayString = new Date().toISOString().slice(0, 10);
+  const [date, setDate] = useState(() => todayString);
   const [status, setStatus] = useState("Present");
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -55,6 +56,12 @@ function AttendancePanel({ token, currentUser }) {
   const handleMark = (e) => {
     e.preventDefault();
     if (!selectedEmployeeId || todayAlreadyMarked) return;
+
+    // Disallow marking attendance for future dates.
+    if (date > todayString) {
+      setError("You cannot mark attendance for a future date.");
+      return;
+    }
     setLoading(true);
     setError("");
     markAttendance(
@@ -120,6 +127,7 @@ function AttendancePanel({ token, currentUser }) {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                max={todayString}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
               />
             </div>

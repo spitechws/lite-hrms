@@ -98,6 +98,47 @@ def read_current_user(
     return current_user
 
 
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    payload: schemas.ChangePasswordRequest,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Allow the currently authenticated user to change their own password.
+    """
+    # Find the Auth row linked to this user.
+    auth = (
+        db.query(models.Auth)
+        .filter(
+            models.Auth.table_name == models.User.__tablename__,
+            models.Auth.table_id == current_user.id,
+        )
+        .first()
+    )
+    if not auth:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No credentials found for this user.",
+        )
+
+    # Verify current password.
+    if not auth_service.verify_password(
+        payload.current_password, auth.password_hash
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect.",
+        )
+
+    # Update to the new password.
+    auth.password_hash = auth_service.get_password_hash(payload.new_password)
+    db.add(auth)
+    db.commit()
+
+    return
+
+
 @router.get("/users", response_model=List[schemas.User])
 def list_users(
     db: Session = Depends(database.get_db),

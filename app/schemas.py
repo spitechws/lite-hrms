@@ -5,11 +5,15 @@ from pydantic import BaseModel, EmailStr, constr
 
 
 class UserBase(BaseModel):
-    username: str
+    # Username can be nullable in the database (e.g. pure employees),
+    # so treat it as optional in responses.
+    username: Optional[str] = None
     email: EmailStr
 
 
 class UserCreate(UserBase):
+    # For registration, require a non-empty username explicitly.
+    username: str
     password: constr(min_length=6, max_length=72)
 
 
@@ -47,6 +51,11 @@ class LoginResponse(BaseModel):
     user: User
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: constr(min_length=6, max_length=72)
+    new_password: constr(min_length=6, max_length=72)
+
+
 class EmployeeBase(BaseModel):
     employee_id: str
     full_name: str
@@ -55,7 +64,7 @@ class EmployeeBase(BaseModel):
 
 
 class EmployeeCreate(EmployeeBase):
-    pass
+    password: constr(min_length=6, max_length=72)
 
 
 class Employee(EmployeeBase):

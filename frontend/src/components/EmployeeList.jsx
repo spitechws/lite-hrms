@@ -12,6 +12,7 @@ function EmployeeList({ token }) {
     full_name: "",
     email: "",
     department: "Development",
+    password: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -47,6 +48,7 @@ function EmployeeList({ token }) {
           full_name: "",
           email: "",
           department: "",
+          password: "",
         });
         loadEmployees();
       })
@@ -77,9 +79,6 @@ function EmployeeList({ token }) {
               <thead>
                 <tr className="bg-slate-50">
                   <th className="px-3 py-2 text-left font-medium text-slate-600">
-                    ID
-                  </th>
-                  <th className="px-3 py-2 text-left font-medium text-slate-600">
                     Employee ID
                   </th>
                   <th className="px-3 py-2 text-left font-medium text-slate-600">
@@ -97,7 +96,6 @@ function EmployeeList({ token }) {
               <tbody>
                 {employees.map((e) => (
                   <tr key={e.id} className="border-t border-slate-100">
-                    <td className="px-3 py-2 text-slate-700">{e.id}</td>
                     <td className="px-3 py-2 text-slate-700">
                       {e.employee_id}
                     </td>
@@ -172,6 +170,19 @@ function EmployeeList({ token }) {
               <option value="Development">Development</option>
               <option value="QA">QA</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Temporary password
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Set a login password"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            />
           </div>
           <button
             type="submit"

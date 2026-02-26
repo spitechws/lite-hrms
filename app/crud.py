@@ -26,10 +26,21 @@ def create_user(
     db_user = models.User(
         username=user_in.username,
         email=user_in.email,
-        password_hash=password_hash,
     )
     db.add(db_user)
     try:
+        # Flush to get an id for the user, then create the Auth row
+        # in the same transaction.
+        db.flush()
+
+        auth = models.Auth(
+            username=user_in.username,
+            password_hash=password_hash,
+            table_name=models.User.__tablename__,
+            table_id=db_user.id,
+        )
+        db.add(auth)
+
         db.commit()
         db.refresh(db_user)
     except IntegrityError:
@@ -42,27 +53,83 @@ def create_user(
 
 
 def get_users(db: Session) -> List[models.User]:
-    return db.query(models.User).all()
-
-
-def get_employees(db: Session) -> List[models.Employee]:
-    return db.query(models.Employee).all()
-
-
-def get_employee(db: Session, employee_id: int):
-    return db.query(models.Employee).filter(models.Employee.id == employee_id).first()
-
-
-def get_employee_by_empid(db: Session, empid: str):
+    """
+    Return all non-employee users (e.g. admins, managers, standard users).
+    Employees are represented by User rows with role='employee' and are
+    excluded from this listing.
+    """
     return (
-        db.query(models.Employee).filter(models.Employee.employee_id == empid).first()
+        db.query(models.User)
+        .filter(models.User.role != "employee")
+        .all()
     )
 
 
-def create_employee(db: Session, employee: schemas.EmployeeCreate):
-    db_employee = models.Employee(**employee.dict())
+def get_employees(db: Session) -> List[models.User]:
+    """
+    Return all employees, represented by User rows with role='employee'.
+    """
+    return db.query(models.User).filter(models.User.role == "employee").all()
+
+
+def get_employee(db: Session, employee_id: int):
+    """
+    Fetch a single employee (User row) by primary key, restricted to role='employee'.
+    """
+    return (
+        db.query(models.User)
+        .filter(models.User.id == employee_id, models.User.role == "employee")
+        .first()
+    )
+
+
+def get_employee_by_empid(db: Session, empid: str):
+    """
+    Look up an employee by their business employee_id, restricted to role='employee'.
+    """
+    return (
+        db.query(models.User)
+        .filter(
+            models.User.employee_id == empid,
+            models.User.role == "employee",
+        )
+        .first()
+    )
+
+
+def create_employee(
+    db: Session, employee: schemas.EmployeeCreate, password_hash: str
+):
+    """
+    Create a new employee backed by the unified User table.
+
+    Employees are Users with role='employee' and their employee-specific
+    profile fields populated. A matching Auth row is created so the
+    employee can log in.
+    """
+    db_employee = models.User(
+        employee_id=employee.employee_id,
+        full_name=employee.full_name,
+        email=employee.email,
+        department=employee.department,
+        role="employee",
+        is_active=True,
+    )
     db.add(db_employee)
     try:
+        # Flush to get an id for the employee, then create the Auth row
+        # in the same transaction.
+        db.flush()
+
+        auth = models.Auth(
+            # Use email as the login identifier for employees.
+            username=employee.email,
+            password_hash=password_hash,
+            table_name=models.User.__tablename__,
+            table_id=db_employee.id,
+        )
+        db.add(auth)
+
         db.commit()
         db.refresh(db_employee)
     except IntegrityError:

@@ -19,3 +19,7 @@ export async function listUsers(token) {
   return request("/auth/users", {}, token);
 }
 
+export async function changePassword(token, data) {
+  return request("/auth/change-password", { method: "POST", body: data }, token);
+}
+

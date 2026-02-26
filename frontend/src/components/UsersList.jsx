@@ -28,9 +28,6 @@ function UsersList({ token }) {
             <thead>
               <tr className="bg-slate-50">
                 <th className="px-3 py-2 text-left font-medium text-slate-600">
-                  ID
-                </th>
-                <th className="px-3 py-2 text-left font-medium text-slate-600">
                   Username
                 </th>
                 <th className="px-3 py-2 text-left font-medium text-slate-600">
@@ -44,8 +41,9 @@ function UsersList({ token }) {
             <tbody>
               {users.map((u) => (
                 <tr key={u.id} className="border-t border-slate-100">
-                  <td className="px-3 py-2 text-slate-700">{u.id}</td>
-                  <td className="px-3 py-2 text-slate-700">{u.username}</td>
+                  <td className="px-3 py-2 text-slate-700">
+                    {u.username || "—"}
+                  </td>
                   <td className="px-3 py-2 text-slate-700">{u.email}</td>
                   <td className="px-3 py-2 text-slate-700">
                     {u.is_active ? "Yes" : "No"}
