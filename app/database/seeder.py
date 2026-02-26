@@ -53,3 +53,4 @@ def seed_initial_admin(
 
 if __name__ == "__main__":
     seed_initial_admin()
+

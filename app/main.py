@@ -4,13 +4,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app import database
+from app.database import init_db
 from app.api.router import api_router
 from app.config import get_settings
 
 settings = get_settings()
 
-database.init_db()
+init_db()
 
 app = FastAPI(title="HRMS Lite Backend", version="0.1.0")
 

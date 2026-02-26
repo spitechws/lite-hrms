@@ -5,7 +5,8 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from app import crud, database, models, schemas
+from app import models, schemas
+from app.database import crud, get_db
 from app.service.auth_service import AuthServiceFactory
 
 router = APIRouter()
@@ -20,7 +21,7 @@ auth_service = AuthServiceFactory.create()
     status_code=status.HTTP_201_CREATED,
 )
 def register_user(
-    user_in: schemas.UserCreate, db: Session = Depends(database.get_db)
+    user_in: schemas.UserCreate, db: Session = Depends(get_db)
 ):
     if crud.get_user_by_username(db, user_in.username):
         raise HTTPException(
@@ -41,7 +42,7 @@ def register_user(
 @router.post("/login", response_model=schemas.LoginResponse)
 def login_for_access_token(
     payload: schemas.LoginRequest,
-    db: Session = Depends(database.get_db),
+    db: Session = Depends(get_db),
 ):
     user = auth_service.authenticate_user(
         db, payload.username, payload.password
@@ -69,7 +70,7 @@ def login_for_access_token(
 @router.post("/refresh", response_model=schemas.LoginResponse)
 def refresh_access_token(
     payload: schemas.RefreshTokenRequest,
-    db: Session = Depends(database.get_db),
+    db: Session = Depends(get_db),
 ):
     """
     Exchange a valid refresh token for a new access (and refresh) token.
@@ -115,7 +116,7 @@ def refresh_access_token(
 
 def get_current_user(
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(database.get_db),
+    db: Session = Depends(get_db),
 ) -> models.User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -148,7 +149,7 @@ def read_current_user(
 @router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
 def change_password(
     payload: schemas.ChangePasswordRequest,
-    db: Session = Depends(database.get_db),
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     """
@@ -188,7 +189,7 @@ def change_password(
 
 @router.get("/users", response_model=List[schemas.User])
 def list_users(
-    db: Session = Depends(database.get_db),
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
     # For now, any authenticated user can list users.

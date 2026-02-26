@@ -5,7 +5,8 @@ from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from app import crud, models
+from app import models
+from app.database import crud
 from app.config import get_settings
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")

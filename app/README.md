@@ -13,9 +13,9 @@ FastAPI backend for a lightweight HRMS with employees, attendance, and JWT‑bas
 ### Project layout
 
 - `main.py` – FastAPI app entrypoint
-- `models.py` – SQLAlchemy models (`User`, `Auth`, `Attendance`)
-- `schemas.py` – Pydantic schemas
-- `crud.py` – data access / CRUD helpers
+- `models/` – SQLAlchemy models (`User`, `Auth`, `Attendance`)
+- `schemas/` – Pydantic schemas
+- `database/` – DB session + data access / CRUD helpers
 - `api/` – versioned API routers
 - `service/` – services (auth, etc.)
 - `config.py` – central configuration (reads `.env`)
@@ -67,7 +67,7 @@ alembic upgrade head
 From the project root:
 
 ```bash
-python -m app.seed_initial_admin
+python -m app.database.seeder
 ```
 
 This will create an initial admin user (`admin` / `admin123`) if it does not already exist.
