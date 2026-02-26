@@ -151,6 +151,14 @@ def delete_employee(db: Session, employee_id: int):
 
 
 def mark_attendance(db: Session, attendance: schemas.AttendanceCreate):
+    # Ensure the employee exists before recording attendance.
+    employee = get_employee(db, attendance.employee_id)
+    if not employee:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Employee not found.",
+        )
+
     # Prevent duplicate attendance for the same employee on the same date.
     existing = (
         db.query(models.Attendance)

@@ -9,7 +9,12 @@ from .models import Base
 settings = get_settings()
 
 # MySQL connection via DATABASE_URL (e.g. mysql+pymysql://user:pass@host/db)
-engine = create_engine(settings.database_url)
+# Use a resilient connection pool suitable for production.
+engine = create_engine(
+    settings.database_url,
+    pool_pre_ping=True,
+    pool_recycle=1800,  # recycle connections periodically to avoid stale connections
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

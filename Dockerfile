@@ -30,7 +30,11 @@ COPY alembic.ini alembic.ini
 # Copy built frontend assets into the expected location for StaticFiles
 COPY --from=frontend-build /frontend/dist frontend/dist
 
+# Create a non-root user to run the app
+RUN useradd -m appuser && chown -R appuser /app
+USER appuser
+
 EXPOSE 8000
 
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers"]
 
