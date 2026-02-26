@@ -1,32 +1,14 @@
-# HRMS Lite Backend (FastAPI)
+## HRMS Lite
 
-## Setup Instructions
+Monorepo containing:
 
-### 1. Install dependencies
-```
-pip install -r requirements.txt
-```
+- **Backend** (FastAPI) under `app/`
+- **Frontend** (React + Vite) under `frontend/`
 
-### 2. Run the server
-```
-uvicorn app.main:app --reload
-```
+### Backend
 
-- The API will be available at http://127.0.0.1:8000
-- Interactive docs: http://127.0.0.1:8000/docs
+See `app/README.md` for full backend documentation (setup, config, API endpoints, migrations).
 
-## API Endpoints
+### Frontend
 
-### Employees
-- `POST /employees` — Add new employee
-- `GET /employees` — List all employees
-- `DELETE /employees/{employee_id}` — Delete employee
-
-### Attendance
-- `POST /attendance` — Mark attendance
-- `GET /attendance/{employee_id}` — Get attendance for employee
-
-## Notes
-- Uses SQLite for persistence (file: hrms.db)
-- No authentication (single admin assumed)
-- Handles validation and error responses
+See `frontend/README.md` for frontend documentation (development server, environment config, features).
