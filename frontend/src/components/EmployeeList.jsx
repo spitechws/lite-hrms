@@ -11,7 +11,7 @@ function EmployeeList({ token }) {
   const [form, setForm] = useState({
     full_name: "",
     email: "",
-    department: "",
+    department: "Development",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -163,13 +163,15 @@ function EmployeeList({ token }) {
             <label className="block text-sm font-medium text-slate-700">
               Department
             </label>
-            <input
+            <select
               name="department"
               value={form.department}
               onChange={handleChange}
-              placeholder="Engineering"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            />
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            >
+              <option value="Development">Development</option>
+              <option value="QA">QA</option>
+            </select>
           </div>
           <button
             type="submit"

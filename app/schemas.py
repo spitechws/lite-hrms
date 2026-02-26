@@ -16,6 +16,11 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: int
     is_active: bool
+    # Optional profile fields (used when this row also represents an employee)
+    full_name: Optional[str] = None
+    department: Optional[str] = None
+    employee_id: Optional[str] = None
+    role: Optional[str] = None
 
     class Config:
         from_attributes = True
