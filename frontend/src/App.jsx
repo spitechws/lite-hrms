@@ -59,7 +59,7 @@ function App() {
     try {
       const { access_token, refresh_token, user } = await login(
         username,
-        password
+        password,
       );
       window.localStorage.setItem("hrms_token", access_token);
       window.localStorage.setItem("hrms_refresh_token", refresh_token);
@@ -93,73 +93,105 @@ function App() {
 
   if (loadingUser) {
     return (
-      <div className="app-shell">
-        <div className="card">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="rounded-xl border border-slate-200 bg-white px-8 py-6 shadow-sm">
+          <p className="text-slate-600 text-sm">Loading your workspace…</p>
+        </div>
       </div>
     );
   }
 
   if (!token || !currentUser) {
     return (
-      <div className="app-shell">
-        <h1>HRMS Lite</h1>
-        <div className="grid-2">
-          <div className="card">
-            <h2>Login</h2>
-            <LoginForm onLogin={handleLogin} />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="w-full max-w-5xl">
+          <header className="mb-8 text-center">
+            <h1 className="text-3xl font-semibold text-slate-900">
+              HRMS Lite
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              Simple HR management for employees and attendance.
+            </p>
+          </header>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                Login
+              </h2>
+              <LoginForm onLogin={handleLogin} />
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                Register
+              </h2>
+              <RegisterForm onRegister={handleRegister} />
+            </div>
           </div>
-          <div className="card">
-            <h2>Register</h2>
-            <RegisterForm onRegister={handleRegister} />
-          </div>
+          {error && (
+            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
         </div>
-        {error && <div className="error-banner">{error}</div>}
       </div>
     );
   }
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div>
-          <h1>HRMS Lite</h1>
-          <span className="subtitle">
-            Signed in as <strong>{currentUser.username}</strong>
-          </span>
-        </div>
-        <button className="btn-secondary" onClick={handleLogout}>
-          Logout
-        </button>
-      </header>
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6">
+        <header className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">
+              HRMS Lite
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Signed in as{" "}
+              <span className="font-medium text-slate-800">
+                {currentUser.username}
+              </span>
+            </p>
+          </div>
+          <button
+            className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+        </header>
 
-      <nav className="tabs">
-        <button
-          className={activeView === "employees" ? "tab active" : "tab"}
-          onClick={() => setActiveView("employees")}
-        >
-          Employees
-        </button>
-        <button
-          className={activeView === "attendance" ? "tab active" : "tab"}
-          onClick={() => setActiveView("attendance")}
-        >
-          Attendance
-        </button>
-        <button
-          className={activeView === "users" ? "tab active" : "tab"}
-          onClick={() => setActiveView("users")}
-        >
-          Users
-        </button>
-      </nav>
+        <nav className="mb-4 flex flex-wrap gap-2">
+          {[
+            { id: "employees", label: "Employees" },
+            { id: "attendance", label: "Attendance" },
+            { id: "users", label: "Users" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              className={`inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ${
+                activeView === tab.id
+                  ? "bg-sky-600 text-white shadow-sm"
+                  : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+              }`}
+              onClick={() => setActiveView(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
 
-      {error && <div className="error-banner">{error}</div>}
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
-      <main>
-        {activeView === "employees" && <EmployeeList token={token} />}
-        {activeView === "attendance" && <AttendancePanel token={token} />}
-        {activeView === "users" && <UsersList token={token} />}
-      </main>
+        <main className="flex-1 space-y-4">
+          {activeView === "employees" && <EmployeeList token={token} />}
+          {activeView === "attendance" && <AttendancePanel token={token} />}
+          {activeView === "users" && <UsersList token={token} />}
+        </main>
+      </div>
     </div>
   );
 }
