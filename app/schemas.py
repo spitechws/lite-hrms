@@ -3,7 +3,6 @@ from typing import Optional, List
 from datetime import date
 
 class EmployeeBase(BaseModel):
-    employee_id: str
     full_name: str
     email: EmailStr
     department: str
@@ -14,7 +13,7 @@ class EmployeeCreate(EmployeeBase):
 class Employee(EmployeeBase):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class AttendanceBase(BaseModel):
     date: date
@@ -27,4 +26,4 @@ class Attendance(AttendanceBase):
     id: int
     employee_id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
