@@ -66,6 +66,53 @@ def login_for_access_token(
     )
 
 
+@router.post("/refresh", response_model=schemas.LoginResponse)
+def refresh_access_token(
+    payload: schemas.RefreshTokenRequest,
+    db: Session = Depends(database.get_db),
+):
+    """
+    Exchange a valid refresh token for a new access (and refresh) token.
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not refresh token.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        token_data = jwt.decode(
+            payload.refresh_token,
+            auth_service.secret_key,
+            algorithms=[auth_service.algorithm],
+        )
+        if token_data.get("type") != "refresh":
+            raise credentials_exception
+        subject = token_data.get("sub")
+        if subject is None:
+            raise credentials_exception
+        user_id = int(subject)
+    except (JWTError, ValueError):
+        raise credentials_exception
+
+    user = crud.get_user(db, user_id)
+    if user is None or not user.is_active:
+        raise credentials_exception
+
+    access_token = auth_service.create_access_token(
+        data={"sub": str(user.id), "type": "access"}
+    )
+    refresh_token = auth_service.create_refresh_token(
+        data={"sub": str(user.id), "type": "refresh"}
+    )
+    return schemas.LoginResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        user=user,
+    )
+
+
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(database.get_db),

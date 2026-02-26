@@ -56,6 +56,10 @@ class ChangePasswordRequest(BaseModel):
     new_password: constr(min_length=6, max_length=72)
 
 
+class RefreshTokenRequest(BaseModel):
+    refresh_token: constr(min_length=10)
+
+
 class EmployeeBase(BaseModel):
     employee_id: str
     full_name: str

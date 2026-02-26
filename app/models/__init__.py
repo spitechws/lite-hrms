@@ -59,3 +59,4 @@ class Attendance(Base):
     date = Column(Date, nullable=False)
     status = Column(String, nullable=False)  # Present / Absent
     employee = relationship("User", back_populates="attendance")
+

@@ -1,14 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app import crud, database, schemas
+from app import schemas
+from app.database import crud, get_db
 
 router = APIRouter()
 
 
 @router.post("", response_model=schemas.Attendance, status_code=201)
 def mark_attendance(
-    attendance: schemas.AttendanceCreate, db: Session = Depends(database.get_db)
+    attendance: schemas.AttendanceCreate, db: Session = Depends(get_db)
 ):
     if not all([attendance.employee_id, attendance.date, attendance.status]):
         raise HTTPException(status_code=422, detail="All fields are required.")
@@ -20,5 +21,5 @@ def mark_attendance(
 
 
 @router.get("/{employee_id}", response_model=list[schemas.Attendance])
-def get_attendance(employee_id: int, db: Session = Depends(database.get_db)):
+def get_attendance(employee_id: int, db: Session = Depends(get_db)):
     return crud.get_attendance_for_employee(db, employee_id)

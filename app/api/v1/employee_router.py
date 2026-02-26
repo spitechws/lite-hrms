@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app import crud, database, schemas
+from app import schemas
+from app.database import crud, get_db
 from app.service.auth_service import AuthServiceFactory
 
 router = APIRouter(tags=["employees"])
@@ -10,7 +11,7 @@ auth_service = AuthServiceFactory.create()
 
 @router.post("/", response_model=schemas.Employee, status_code=201)
 def create_employee(
-    employee: schemas.EmployeeCreate, db: Session = Depends(database.get_db)
+    employee: schemas.EmployeeCreate, db: Session = Depends(get_db)
 ):
     if not all(
         [
@@ -28,10 +29,10 @@ def create_employee(
 
 
 @router.get("/", response_model=list[schemas.Employee])
-def list_employees(db: Session = Depends(database.get_db)):
+def list_employees(db: Session = Depends(get_db)):
     return crud.get_employees(db)
 
 
 @router.delete("/{employee_id}", response_model=schemas.Employee)
-def delete_employee(employee_id: int, db: Session = Depends(database.get_db)):
+def delete_employee(employee_id: int, db: Session = Depends(get_db)):
     return crud.delete_employee(db, employee_id)

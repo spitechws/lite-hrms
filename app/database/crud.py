@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from app import models, schemas
 
 
 def get_user(db: Session, user_id: int) -> Optional[models.User]:
@@ -187,3 +187,4 @@ def get_attendance_for_employee(db: Session, employee_id: int):
         .filter(models.Attendance.employee_id == employee_id)
         .all()
     )
+

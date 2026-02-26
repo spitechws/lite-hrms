@@ -23,3 +23,10 @@ export async function changePassword(token, data) {
   return request("/auth/change-password", { method: "POST", body: data }, token);
 }
 
+export async function refresh(refreshToken) {
+  return request("/auth/refresh", {
+    method: "POST",
+    body: { refresh_token: refreshToken },
+  });
+}
+
