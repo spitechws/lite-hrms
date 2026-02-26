@@ -1,3 +1,4 @@
 /frontend/node_modules
 *.pyc
 /app/service/__pycache__
+hrms.db

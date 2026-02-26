@@ -84,6 +84,21 @@ def delete_employee(db: Session, employee_id: int):
 
 
 def mark_attendance(db: Session, attendance: schemas.AttendanceCreate):
+    # Prevent duplicate attendance for the same employee on the same date.
+    existing = (
+        db.query(models.Attendance)
+        .filter(
+            models.Attendance.employee_id == attendance.employee_id,
+            models.Attendance.date == attendance.date,
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Attendance for this date is already recorded.",
+        )
+
     db_attendance = models.Attendance(**attendance.dict())
     db.add(db_attendance)
     db.commit()

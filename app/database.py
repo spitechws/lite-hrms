@@ -8,9 +8,8 @@ from .models import Base
 
 settings = get_settings()
 
-engine = create_engine(
-    settings.database_url, connect_args={"check_same_thread": False}
-)
+# MySQL connection via DATABASE_URL (e.g. mysql+pymysql://user:pass@host/db)
+engine = create_engine(settings.database_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

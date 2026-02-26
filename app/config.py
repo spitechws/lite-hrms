@@ -15,7 +15,9 @@ class Settings:
     def __init__(self) -> None:
         # Database
         self.database_url: str = os.getenv(
-            "DATABASE_URL", "sqlite:///./app/hrms.db"
+            "DATABASE_URL",
+            # Example MySQL DSN; override in .env with real credentials/db.
+            "mysql+pymysql://root:password@localhost/hrms_lite",
         )
 
         # Auth / JWT

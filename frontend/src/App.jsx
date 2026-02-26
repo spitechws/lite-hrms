@@ -14,6 +14,8 @@ function App() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [error, setError] = useState("");
 
+  const isEmployee = currentUser?.role === "employee";
+
   useEffect(() => {
     const savedToken = window.localStorage.getItem("hrms_token");
     const savedRefresh = window.localStorage.getItem("hrms_refresh_token");
@@ -30,7 +32,9 @@ function App() {
     }
     if (savedUser) {
       try {
-        setCurrentUser(JSON.parse(savedUser));
+        const parsed = JSON.parse(savedUser);
+        setCurrentUser(parsed);
+        setActiveView(parsed.role === "employee" ? "attendance" : "employees");
         setLoadingUser(false);
         return;
       } catch {
@@ -42,6 +46,7 @@ function App() {
       .then((user) => {
         setCurrentUser(user);
         window.localStorage.setItem("hrms_user", JSON.stringify(user));
+        setActiveView(user.role === "employee" ? "attendance" : "employees");
       })
       .catch(() => {
         window.localStorage.removeItem("hrms_token");
@@ -67,6 +72,7 @@ function App() {
       setToken(access_token);
       setRefreshToken(refresh_token);
       setCurrentUser(user);
+      setActiveView(user.role === "employee" ? "attendance" : "employees");
     } catch (err) {
       setError(err.message || "Login failed");
     }
@@ -113,19 +119,11 @@ function App() {
               Simple HR management for employees and attendance.
             </p>
           </header>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                Login
-              </h2>
-              <LoginForm onLogin={handleLogin} />
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                Register
-              </h2>
-              <RegisterForm onRegister={handleRegister} />
-            </div>
+          <div className="max-w-md mx-auto rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">
+              Login
+            </h2>
+            <LoginForm onLogin={handleLogin} />
           </div>
           {error && (
             <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
@@ -150,6 +148,11 @@ function App() {
               <span className="font-medium text-slate-800">
                 {currentUser.username}
               </span>
+              {currentUser.role && (
+                <span className="ml-2 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-slate-600">
+                  {currentUser.role}
+                </span>
+              )}
             </p>
           </div>
           <button
@@ -161,11 +164,14 @@ function App() {
         </header>
 
         <nav className="mb-4 flex flex-wrap gap-2">
-          {[
-            { id: "employees", label: "Employees" },
-            { id: "attendance", label: "Attendance" },
-            { id: "users", label: "Users" },
-          ].map((tab) => (
+          {(isEmployee
+            ? [{ id: "attendance", label: "Attendance" }]
+            : [
+                { id: "employees", label: "Employees" },
+                { id: "attendance", label: "Attendance" },
+                { id: "users", label: "Users" },
+              ]
+          ).map((tab) => (
             <button
               key={tab.id}
               className={`inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium ${
@@ -187,9 +193,13 @@ function App() {
         )}
 
         <main className="flex-1 space-y-4">
-          {activeView === "employees" && <EmployeeList token={token} />}
+          {!isEmployee && activeView === "employees" && (
+            <EmployeeList token={token} />
+          )}
           {activeView === "attendance" && <AttendancePanel token={token} />}
-          {activeView === "users" && <UsersList token={token} />}
+          {!isEmployee && activeView === "users" && (
+            <UsersList token={token} />
+          )}
         </main>
       </div>
     </div>

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { listEmployees } from "../api/employees";
 import {
   getAttendanceForEmployee,
   markAttendance,
 } from "../api/attendance";
 
-function AttendancePanel({ token }) {
+function AttendancePanel({ token, currentUser }) {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -14,7 +14,20 @@ function AttendancePanel({ token }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const isEmployee = currentUser?.role === "employee";
+
+  const todayAlreadyMarked = useMemo(
+    () => attendance.some((a) => a.date === date),
+    [attendance, date],
+  );
+
+  // Admin/user: load all employees and allow selection.
   useEffect(() => {
+    if (isEmployee) {
+      setSelectedEmployeeId(String(currentUser.id));
+      return;
+    }
+
     listEmployees(token)
       .then((emps) => {
         setEmployees(emps);
@@ -23,9 +36,9 @@ function AttendancePanel({ token }) {
         }
       })
       .catch((err) =>
-        setError(err.message || "Failed to load employees for attendance")
+        setError(err.message || "Failed to load employees for attendance"),
       );
-  }, []);
+  }, [isEmployee, token, currentUser]);
 
   useEffect(() => {
     if (!selectedEmployeeId) return;
@@ -41,7 +54,7 @@ function AttendancePanel({ token }) {
 
   const handleMark = (e) => {
     e.preventDefault();
-    if (!selectedEmployeeId) return;
+    if (!selectedEmployeeId || todayAlreadyMarked) return;
     setLoading(true);
     setError("");
     markAttendance(
@@ -70,22 +83,34 @@ function AttendancePanel({ token }) {
           Mark Attendance
         </h2>
         <form onSubmit={handleMark} className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Employee
-            </label>
-            <select
-              value={selectedEmployeeId}
-              onChange={(e) => setSelectedEmployeeId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              {employees.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.full_name} ({e.employee_id})
-                </option>
-              ))}
-            </select>
-          </div>
+          {isEmployee ? (
+            <div>
+              <p className="text-sm text-slate-600">
+                Mark attendance for{" "}
+                <span className="font-medium">
+                  {currentUser.full_name || currentUser.username}
+                </span>
+                .
+              </p>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Employee
+              </label>
+              <select
+                value={selectedEmployeeId}
+                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+              >
+                {employees.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.full_name} ({e.employee_id})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="flex-1">
               <label className="block text-sm font-medium text-slate-700">
@@ -115,9 +140,13 @@ function AttendancePanel({ token }) {
           <button
             className="inline-flex w-full items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
             type="submit"
-            disabled={loading}
+            disabled={loading || todayAlreadyMarked}
           >
-            {loading ? "Saving…" : "Save"}
+            {todayAlreadyMarked
+              ? "Already marked for today"
+              : loading
+                ? "Saving…"
+                : "Save"}
           </button>
         </form>
         {error && (

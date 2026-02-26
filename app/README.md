@@ -5,7 +5,7 @@ FastAPI backend for a lightweight HRMS with employees, attendance, and JWT‑bas
 ### Tech stack
 
 - **Python / FastAPI**
-- **SQLAlchemy** (ORM) with **SQLite** by default
+- **SQLAlchemy** (ORM) with **MySQL** (via `pymysql`) by default
 - **Pydantic** for validation
 - **JWT** via `python-jose`
 - **Alembic** for database migrations
@@ -26,7 +26,7 @@ FastAPI backend for a lightweight HRMS with employees, attendance, and JWT‑bas
 Create `.env` in the project root and set:
 
 ```env
-DATABASE_URL=sqlite:///./app/hrms.db
+DATABASE_URL=mysql+pymysql://root:password@localhost/hrms_lite
 SECRET_KEY=change_me_in_production
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -85,5 +85,5 @@ uvicorn main:app --reload
 
 ### Notes
 
-- Default DB is `app/hrms.db`; override with `DATABASE_URL` if needed.
+- Default DB is a MySQL database at `mysql+pymysql://root:password@localhost/hrms_lite`; override with `DATABASE_URL` in `.env` for your own credentials/host/db.
 - All config is centralized in `config.py` and read from `.env`.
