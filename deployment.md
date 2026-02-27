@@ -143,6 +143,7 @@ ghcr.io/<owner>/<repo>:latest
 ### 4.4 Job: deploy
 
 - Runs after `build-and-push` succeeds.
+- **Deploys the app to your VPS by running it in a Docker container** (no app code copied to the VPS; only the pre-built image is pulled and run).
 - Uses `appleboy/ssh-action` to:
 
   1. SSH into the VPS using `VPS_HOST`, `VPS_USER`, `VPS_PORT`, `VPS_SSH_KEY`
@@ -154,7 +155,7 @@ ghcr.io/<owner>/<repo>:latest
      If `DATABASE_URL` is set, it is used; otherwise `DATABASE_URL` is built from `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD`.
 
   ```bash
-  docker run -d --name hrms-lite \
+  docker run -d --name hrms-lite --restart unless-stopped \
     -p 8000:8001 \
     -e DATABASE_URL="${DATABASE_URL}" \
     -e SECRET_KEY="${SECRET_KEY}" \

@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to VPS via SSH
+      - name: Deploy to VPS (Docker container)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -65,6 +65,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -e
+            echo "=== Deploying to VPS: running app in Docker container ==="
             DEPLOY_DIR="${{ secrets.DEPLOY_DIR }}"
             mkdir -p "$DEPLOY_DIR"
             cd "$DEPLOY_DIR"
@@ -75,9 +76,9 @@ jobs:
             echo "Pulling latest image..."
             docker pull ${{ env.REGISTRY }}/${{ github.repository }}:latest
 
-            echo "Stopping existing container (if any)..."
-            docker stop hrms-lite || true
-            docker rm hrms-lite || true
+            echo "Stopping and removing existing container (if any)..."
+            docker stop hrms-lite 2>/dev/null || true
+            docker rm hrms-lite 2>/dev/null || true
 
             if [ -n "${{ secrets.DATABASE_URL }}" ]; then
               DATABASE_URL="${{ secrets.DATABASE_URL }}"
@@ -85,9 +86,10 @@ jobs:
               DATABASE_URL="mysql+pymysql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:3306/${{ secrets.DB_DATABASE }}"
             fi
 
-            echo "Starting new container..."
-            # Map host 8000 -> container 8001 so nginx (on 8001) can proxy to 127.0.0.1:8000
-            docker run -d --name hrms-lite \
+            echo "Starting Docker container on VPS..."
+            docker run -d \
+              --name hrms-lite \
+              --restart unless-stopped \
               -p 8000:8001 \
               -e DATABASE_URL="$DATABASE_URL" \
               -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
@@ -96,3 +98,5 @@ jobs:
               -e REFRESH_TOKEN_EXPIRE_MINUTES="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}" \
               -e CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}" \
               ${{ env.REGISTRY }}/${{ github.repository }}:latest
+
+            echo "Container hrms-lite is running on VPS. Verify with: docker ps"
