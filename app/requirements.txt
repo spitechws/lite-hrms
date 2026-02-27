@@ -1,10 +1,24 @@
-fastapi
-uvicorn
-sqlalchemy
-pydantic
-python-jose[cryptography]
-passlib[bcrypt]
-python-multipart
-alembic
-python-dotenv
-pymysql
+# Web framework
+fastapi>=0.104,<0.115
+uvicorn[standard]>=0.24,<0.32
+
+# Database
+sqlalchemy>=2.0,<2.1
+pymysql>=1.1,<2
+
+# Validation & serialization (EmailStr needs email-validator)
+pydantic>=2.0,<3
+email-validator>=2.0,<3
+
+# Auth
+python-jose[cryptography]>=3.3
+passlib[bcrypt]>=1.7
+
+# API
+python-multipart>=0.0.6
+
+# Migrations
+alembic>=1.12,<1.14
+
+# Config
+python-dotenv>=1.0,<2

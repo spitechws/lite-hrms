@@ -51,11 +51,7 @@ Go to **GitHub → Settings → Secrets and variables → Actions → New reposi
 
 ### 2.3 GHCR (container registry) access
 
-1. Create a **Personal Access Token (PAT)** with `read:packages` and `write:packages` on GitHub.
-2. Add:
-
-- **`GHCR_USERNAME`**: Your GitHub username (owner of the PAT)
-- **`GHCR_PAT`**: The Personal Access Token created above
+No extra secrets needed. The workflow uses GitHub’s default **`GITHUB_TOKEN`** and **`github.actor`** to log in to GHCR both when pushing the image (build job) and when pulling it on the VPS (deploy job).
 
 ### 2.4 Application configuration (env vars)
 
@@ -151,7 +147,7 @@ ghcr.io/<owner>/<repo>:latest
 
   1. SSH into the VPS using `VPS_HOST`, `VPS_USER`, `VPS_PORT`, `VPS_SSH_KEY`
   2. Create and use `DEPLOY_DIR` on the VPS (e.g. `/var/www/devauto`)
-  3. Log in to GHCR using `GHCR_USERNAME` and `GHCR_PAT`
+  3. Log in to GHCR using the default `GITHUB_TOKEN` and `github.actor`
   4. Pull the latest image
   5. Stop and remove any existing `hrms-lite` container
   6. Run a new container with env vars from secrets:  
@@ -178,17 +174,11 @@ ghcr.io/<owner>/<repo>:latest
    - Install Docker
    - Ensure port `8000` (or your reverse proxy) is reachable
 
-2. **Create GHCR PAT**
+2. **Configure GitHub Secrets**
 
-   - Go to GitHub → Settings → Developer settings → Personal access tokens
-   - Create a token with `read:packages` and `write:packages`
-   - Save as `GHCR_PAT`, and your username as `GHCR_USERNAME` in repo secrets
+   - Add all secrets listed in **Section 2** (no GHCR PAT needed; the workflow uses the default token)
 
-3. **Configure GitHub Secrets**
-
-   - Add all secrets listed in **Section 2**
-
-4. **Push to `master`**
+3. **Push to `master`**
 
    - Commit the Dockerfile and workflow
    - Push to `master`
@@ -197,7 +187,7 @@ ghcr.io/<owner>/<repo>:latest
      - SSH to the VPS
      - Pull and run the updated container
 
-5. **Access the app**
+4. **Access the app**
 
    - If you mapped `-p 8000:8000`, the backend (and frontend) are at:
 
