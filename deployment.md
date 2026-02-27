@@ -60,11 +60,12 @@ These values are injected into the container at runtime.
 **Option A – full database URL**
 
 - **`DATABASE_URL`**: Full MySQL connection string, e.g.  
-  `mysql+pymysql://db_user:db_password@db_host:3306/db_name`
+  `mysql+pymysql://db_user:db_password@host.docker.internal:3306/db_name`  
+  (Use `host.docker.internal` when DB runs on VPS host and app runs in Docker.)
 
 **Option B – build from parts (if `DATABASE_URL` is not set)**
 
-- **`DB_HOST`**: MySQL host (e.g. `localhost` or RDS endpoint)
+- **`DB_HOST`**: MySQL host. For your setup, use `host.docker.internal`.
 - **`DB_DATABASE`**: Database name (e.g. `devauto_db`)
 - **`DB_USERNAME`**: Database user (e.g. `devauto_db_user`)
 - **`DB_PASSWORD`**: Database password

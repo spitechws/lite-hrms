@@ -94,13 +94,16 @@ jobs:
             DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
             DB_HOST="${{ secrets.DB_HOST }}"
             if [ -z "$DB_HOST" ]; then
-              DB_HOST="localhost"
+              # Inside a container, localhost points to itself.
+              # Default to Docker host gateway when DB_HOST is not provided.
+              DB_HOST="host.docker.internal"
             fi
             if [ -z "$DB_DATABASE" ] || [ -z "$DB_USERNAME" ] || [ -z "$DB_PASSWORD" ]; then
               echo "ERROR: DB_DATABASE, DB_USERNAME and DB_PASSWORD secrets are required."
               exit 1
             fi
             DATABASE_URL="mysql+pymysql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:3306/${DB_DATABASE}"
+            echo "Using DB host: ${DB_HOST}, DB name: ${DB_DATABASE}, DB user: ${DB_USERNAME}"
 
             SECRET_KEY="${{ secrets.SECRET_KEY }}"
             if [ -z "$SECRET_KEY" ]; then
@@ -136,6 +139,7 @@ jobs:
             docker run -d \
               --name devauto \
               --restart unless-stopped \
+              --add-host=host.docker.internal:host-gateway \
               -p 8002:8001 \
               -e DATABASE_URL="$DATABASE_URL" \
               -e SECRET_KEY="$SECRET_KEY" \
