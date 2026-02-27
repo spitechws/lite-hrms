@@ -24,8 +24,8 @@ Log out and back in so the `docker` group takes effect.
 
 2. **(Optional) Configure a firewall / reverse proxy**
 
-- Expose port `8001` directly, or
-- Configure Nginx/Traefik/etc. as a reverse proxy in front of `localhost:8001`.
+- The pipeline maps the container as `-p 8000:8001` (host 8000 → container 8001).
+- Expose port `8001` directly, or use Nginx listening on `8001` and `proxy_pass http://127.0.0.1:8000`.
 
 ---
 
@@ -155,7 +155,7 @@ ghcr.io/<owner>/<repo>:latest
 
   ```bash
   docker run -d --name hrms-lite \
-    -p 8001:8001 \
+    -p 8000:8001 \
     -e DATABASE_URL="${DATABASE_URL}" \
     -e SECRET_KEY="${SECRET_KEY}" \
     -e JWT_ALGORITHM="${JWT_ALGORITHM}" \
@@ -189,13 +189,13 @@ ghcr.io/<owner>/<repo>:latest
 
 4. **Access the app**
 
-- If you mapped `-p 8001:8001`, the backend (and frontend) are at:
+- The container is run with `-p 8000:8001` (app on host port 8000). If Nginx listens on 8001 and proxies to `http://127.0.0.1:8000`, the app is at:
 
   ```text
   http://<VPS_HOST>:8001
   ```
 
-  - If using a reverse proxy (Nginx, etc.), configure it to forward to `localhost:8001`.
+- If not using Nginx, use `http://<VPS_HOST>:8000` (direct to container).
 
 ---
 
