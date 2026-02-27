@@ -29,7 +29,7 @@ React SPA for managing employees, attendance, and authentication against the HRM
 The frontend reads the backend base URL from `VITE_API_BASE_URL`:
 
 ```env
-VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+VITE_API_BASE_URL=http://127.0.0.1:8001/api/v1
 ```
 
 This is already set in `frontend/.env`. Change it if your backend runs elsewhere.

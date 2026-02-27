@@ -80,8 +80,8 @@ From the project root:
 uvicorn app.main:app --reload
 ```
 
-- API base: `http://127.0.0.1:8000/api/v1`
-- Docs: `http://127.0.0.1:8000/docs`
+- API base: `http://127.0.0.1:8001/api/v1`
+- Docs: `http://127.0.0.1:8001/docs`
 
 ### Main API endpoints
 

@@ -24,8 +24,8 @@ Log out and back in so the `docker` group takes effect.
 
 2. **(Optional) Configure a firewall / reverse proxy**
 
-- Expose port `8000` directly, or
-- Configure Nginx/Traefik/etc. as a reverse proxy in front of `localhost:8000`.
+- Expose port `8001` directly, or
+- Configure Nginx/Traefik/etc. as a reverse proxy in front of `localhost:8001`.
 
 ---
 
@@ -96,13 +96,13 @@ The `Dockerfile` in the repo does the following:
    - Copies `app/`, `alembic/`, `alembic.ini`, and `frontend/dist`
    - On container start:
      - Runs `alembic upgrade head`
-     - Starts `uvicorn app.main:app --host 0.0.0.0 --port 8000`
+     - Starts `uvicorn app.main:app --host 0.0.0.0 --port 8001`
 
 Local build example (optional):
 
 ```bash
 docker build -t hrms-lite:local .
-docker run --rm -p 8000:8000 \
+docker run --rm -p 8001:8001 \
   -e DATABASE_URL="mysql+pymysql://..." \
   -e SECRET_KEY="your-secret" \
   -e JWT_ALGORITHM="HS256" \
@@ -155,7 +155,7 @@ ghcr.io/<owner>/<repo>:latest
 
   ```bash
   docker run -d --name hrms-lite \
-    -p 8000:8000 \
+    -p 8001:8001 \
     -e DATABASE_URL="${DATABASE_URL}" \
     -e SECRET_KEY="${SECRET_KEY}" \
     -e JWT_ALGORITHM="${JWT_ALGORITHM}" \
@@ -172,7 +172,7 @@ ghcr.io/<owner>/<repo>:latest
 1. **Prepare VPS**
 
    - Install Docker
-   - Ensure port `8000` (or your reverse proxy) is reachable
+   - Ensure port `8001` (or your reverse proxy) is reachable
 
 2. **Configure GitHub Secrets**
 
@@ -189,13 +189,13 @@ ghcr.io/<owner>/<repo>:latest
 
 4. **Access the app**
 
-   - If you mapped `-p 8000:8000`, the backend (and frontend) are at:
+- If you mapped `-p 8001:8001`, the backend (and frontend) are at:
 
-   ```text
-   http://<VPS_HOST>:8000
-   ```
+  ```text
+  http://<VPS_HOST>:8001
+  ```
 
-   - If using a reverse proxy (Nginx, etc.), configure it to forward to `localhost:8000`.
+  - If using a reverse proxy (Nginx, etc.), configure it to forward to `localhost:8001`.
 
 ---
 

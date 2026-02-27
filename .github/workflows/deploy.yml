@@ -87,7 +87,7 @@ jobs:
 
             echo "Starting new container..."
             docker run -d --name hrms-lite \
-              -p 8000:8000 \
+              -p 8001:8001 \
               -e DATABASE_URL="$DATABASE_URL" \
               -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
               -e JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}" \
