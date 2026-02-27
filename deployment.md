@@ -24,8 +24,8 @@ Log out and back in so the `docker` group takes effect.
 
 2. **(Optional) Configure a firewall / reverse proxy**
 
-- The pipeline maps the container as `-p 8000:8001` (host 8000 → container 8001).
-- Expose port `8001` directly, or use Nginx listening on `8001` and `proxy_pass http://127.0.0.1:8000`.
+- The pipeline maps the container as `-p 8002:8001` (host 8002 → container 8001).
+- Typical Nginx setup: listen on `8001` and `proxy_pass http://127.0.0.1:8002`.
 
 ---
 
@@ -102,7 +102,7 @@ Local build example (optional):
 
 ```bash
 docker build -t hrms-lite:local .
-docker run --rm -p 8001:8001 \
+docker run --rm -p 8002:8001 \
   -e DATABASE_URL="mysql+pymysql://..." \
   -e SECRET_KEY="your-secret" \
   -e JWT_ALGORITHM="HS256" \
@@ -156,7 +156,7 @@ ghcr.io/<owner>/<repo>:latest
 
   ```bash
   docker run -d --name hrms-lite --restart unless-stopped \
-    -p 8000:8001 \
+    -p 8002:8001 \
     -e DATABASE_URL="${DATABASE_URL}" \
     -e SECRET_KEY="${SECRET_KEY}" \
     -e JWT_ALGORITHM="${JWT_ALGORITHM}" \
@@ -190,13 +190,13 @@ ghcr.io/<owner>/<repo>:latest
 
 4. **Access the app**
 
-- The container is run with `-p 8000:8001` (app on host port 8000). If Nginx listens on 8001 and proxies to `http://127.0.0.1:8000`, the app is at:
+- The container is run with `-p 8002:8001` (app on host port 8002). With Nginx listening on 8001 and `proxy_pass http://127.0.0.1:8002`, the app is available at:
 
   ```text
   http://<VPS_HOST>:8001
   ```
 
-- If not using Nginx, use `http://<VPS_HOST>:8000` (direct to container).
+- If not using Nginx, use `http://<VPS_HOST>:8002` (direct to container).
 
 ---
 

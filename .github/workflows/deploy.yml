@@ -77,8 +77,11 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ github.repository }}:latest
 
             echo "Stopping and removing existing container (if any)..."
-            docker stop hrms-lite 2>/dev/null || true
-            docker rm hrms-lite 2>/dev/null || true
+            docker rm -f hrms-lite 2>/dev/null || true
+            # Ensure no other container is bound to host port 8002
+            for id in $(docker ps -q --filter "publish=8002" 2>/dev/null); do docker rm -f $id; done
+            echo "Waiting for port 8002 to be released..."
+            sleep 3
 
             if [ -n "${{ secrets.DATABASE_URL }}" ]; then
               DATABASE_URL="${{ secrets.DATABASE_URL }}"
@@ -86,11 +89,11 @@ jobs:
               DATABASE_URL="mysql+pymysql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:3306/${{ secrets.DB_DATABASE }}"
             fi
 
-            echo "Starting Docker container on VPS..."
+            echo "Starting Docker container on VPS (host 8002 -> container 8001)..."
             docker run -d \
               --name hrms-lite \
               --restart unless-stopped \
-              -p 8000:8001 \
+              -p 8002:8001 \
               -e DATABASE_URL="$DATABASE_URL" \
               -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
               -e JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}" \
