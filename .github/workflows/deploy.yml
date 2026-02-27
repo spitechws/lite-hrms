@@ -89,10 +89,43 @@ jobs:
               exit 1
             fi
 
-            if [ -n "${{ secrets.DATABASE_URL }}" ]; then
-              DATABASE_URL="${{ secrets.DATABASE_URL }}"
-            else
-              DATABASE_URL="mysql+pymysql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:3306/${{ secrets.DB_DATABASE }}"
+            DB_DATABASE="${{ secrets.DB_DATABASE }}"
+            DB_USERNAME="${{ secrets.DB_USERNAME }}"
+            DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+            DB_HOST="${{ secrets.DB_HOST }}"
+            if [ -z "$DB_HOST" ]; then
+              DB_HOST="localhost"
+            fi
+            if [ -z "$DB_DATABASE" ] || [ -z "$DB_USERNAME" ] || [ -z "$DB_PASSWORD" ]; then
+              echo "ERROR: DB_DATABASE, DB_USERNAME and DB_PASSWORD secrets are required."
+              exit 1
+            fi
+            DATABASE_URL="mysql+pymysql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:3306/${DB_DATABASE}"
+
+            SECRET_KEY="${{ secrets.SECRET_KEY }}"
+            if [ -z "$SECRET_KEY" ]; then
+              echo "ERROR: SECRET_KEY is required but missing/empty."
+              exit 1
+            fi
+
+            JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}"
+            if [ -z "$JWT_ALGORITHM" ]; then
+              JWT_ALGORITHM="HS256"
+            fi
+
+            ACCESS_TOKEN_EXPIRE_MINUTES="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}"
+            if [ -z "$ACCESS_TOKEN_EXPIRE_MINUTES" ]; then
+              ACCESS_TOKEN_EXPIRE_MINUTES="30"
+            fi
+
+            REFRESH_TOKEN_EXPIRE_MINUTES="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}"
+            if [ -z "$REFRESH_TOKEN_EXPIRE_MINUTES" ]; then
+              REFRESH_TOKEN_EXPIRE_MINUTES="10080"
+            fi
+
+            CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}"
+            if [ -z "$CORS_ORIGINS" ]; then
+              CORS_ORIGINS="*"
             fi
 
             echo "Starting Docker container on VPS (host 8002 -> container 8001)..."
@@ -101,11 +134,11 @@ jobs:
               --restart unless-stopped \
               -p 8002:8001 \
               -e DATABASE_URL="$DATABASE_URL" \
-              -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
-              -e JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}" \
-              -e ACCESS_TOKEN_EXPIRE_MINUTES="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" \
-              -e REFRESH_TOKEN_EXPIRE_MINUTES="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}" \
-              -e CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}" \
+              -e SECRET_KEY="$SECRET_KEY" \
+              -e JWT_ALGORITHM="$JWT_ALGORITHM" \
+              -e ACCESS_TOKEN_EXPIRE_MINUTES="$ACCESS_TOKEN_EXPIRE_MINUTES" \
+              -e REFRESH_TOKEN_EXPIRE_MINUTES="$REFRESH_TOKEN_EXPIRE_MINUTES" \
+              -e CORS_ORIGINS="$CORS_ORIGINS" \
               ${{ env.REGISTRY }}/${{ github.repository }}:latest
 
             echo "Container hrms-lite is running on VPS. Verify with: docker ps"

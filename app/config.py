@@ -11,6 +11,20 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 load_dotenv(BASE_DIR / ".env")
 
 
+def _get_int_env(name: str, default: int) -> int:
+    """
+    Read integer env values safely.
+    Treat missing/blank values as default to avoid startup crashes.
+    """
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+
 class Settings:
     def __init__(self) -> None:
         # Database
@@ -23,11 +37,11 @@ class Settings:
         # Auth / JWT
         self.secret_key: str = os.getenv("SECRET_KEY", "change_me")
         self.jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
-        self.access_token_expire_minutes: int = int(
-            os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+        self.access_token_expire_minutes: int = _get_int_env(
+            "ACCESS_TOKEN_EXPIRE_MINUTES", 30
         )
-        self.refresh_token_expire_minutes: int = int(
-            os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES", "10080")
+        self.refresh_token_expire_minutes: int = _get_int_env(
+            "REFRESH_TOKEN_EXPIRE_MINUTES", 10080
         )  # 7 days
 
         # CORS
