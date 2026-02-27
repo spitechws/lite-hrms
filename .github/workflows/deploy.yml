@@ -149,4 +149,7 @@ jobs:
               -e CORS_ORIGINS="$CORS_ORIGINS" \
               ${{ env.REGISTRY }}/${{ github.repository }}:latest
 
+            echo "Running install script (migrations + seeders)..."
+            docker exec devauto python -m app.install
+
             echo "Container devauto is running on VPS. Verify with: docker ps"
