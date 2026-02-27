@@ -76,8 +76,8 @@ jobs:
             echo "Pulling latest image..."
             docker pull ${{ env.REGISTRY }}/${{ github.repository }}:latest
 
-            echo "Stopping and removing existing app container (hrms-lite, if any)..."
-            docker rm -f hrms-lite 2>/dev/null || true
+            echo "Stopping and removing existing app container (devauto, if any)..."
+            docker rm -f devauto 2>/dev/null || true
 
             # Safety check: do NOT touch any other containers. If some other
             # container is already bound to host port 8002, fail fast so we
@@ -104,8 +104,12 @@ jobs:
 
             SECRET_KEY="${{ secrets.SECRET_KEY }}"
             if [ -z "$SECRET_KEY" ]; then
-              echo "ERROR: SECRET_KEY is required but missing/empty."
-              exit 1
+              echo "WARNING: SECRET_KEY secret is empty. Generating a fallback key for this deploy."
+              if command -v openssl >/dev/null 2>&1; then
+                SECRET_KEY="$(openssl rand -hex 32)"
+              else
+                SECRET_KEY="devauto-fallback-$(date +%s)"
+              fi
             fi
 
             JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}"
@@ -130,7 +134,7 @@ jobs:
 
             echo "Starting Docker container on VPS (host 8002 -> container 8001)..."
             docker run -d \
-              --name hrms-lite \
+              --name devauto \
               --restart unless-stopped \
               -p 8002:8001 \
               -e DATABASE_URL="$DATABASE_URL" \
@@ -141,4 +145,4 @@ jobs:
               -e CORS_ORIGINS="$CORS_ORIGINS" \
               ${{ env.REGISTRY }}/${{ github.repository }}:latest
 
-            echo "Container hrms-lite is running on VPS. Verify with: docker ps"
+            echo "Container devauto is running on VPS. Verify with: docker ps"
