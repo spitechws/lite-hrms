@@ -25,7 +25,7 @@ Log out and back in so the `docker` group takes effect.
 2. **(Optional) Configure a firewall / reverse proxy**
 
 - The pipeline maps the container as `-p 8002:8001` (host 8002 → container 8001).
-- Typical Nginx setup: listen on `8001` and `proxy_pass http://127.0.0.1:8002`.
+- Typical Nginx setup: listen on `80` and `proxy_pass http://127.0.0.1:8002`.
 
 ---
 
@@ -143,14 +143,15 @@ ghcr.io/<owner>/<repo>:latest
 ### 4.4 Job: deploy
 
 - Runs after `build-and-push` succeeds.
-- **Deploys the app to your VPS by running it in a Docker container** (no app code copied to the VPS; only the pre-built image is pulled and run).
+- **Deploys the app to your VPS by running it in a dedicated Docker container** named `hrms-lite` (no app code copied to the VPS; only the pre-built image is pulled and run).
 - Uses `appleboy/ssh-action` to:
 
   1. SSH into the VPS using `VPS_HOST`, `VPS_USER`, `VPS_PORT`, `VPS_SSH_KEY`
   2. Create and use `DEPLOY_DIR` on the VPS (e.g. `/var/www/devauto`)
   3. Log in to GHCR using the default `GITHUB_TOKEN` and `github.actor`
   4. Pull the latest image
-  5. Stop and remove any existing `hrms-lite` container
+  5. Stop and remove any existing `hrms-lite` container (without touching any other containers on the VPS).  
+     If some other container is already using host port `8002`, the deploy **fails with an error** instead of stopping it, so existing workloads are not disturbed.
   6. Run a new container with env vars from secrets:  
      If `DATABASE_URL` is set, it is used; otherwise `DATABASE_URL` is built from `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD`.
 
@@ -190,10 +191,10 @@ ghcr.io/<owner>/<repo>:latest
 
 4. **Access the app**
 
-- The container is run with `-p 8002:8001` (app on host port 8002). With Nginx listening on 8001 and `proxy_pass http://127.0.0.1:8002`, the app is available at:
+- The container is run with `-p 8002:8001` (app on host port 8002). With Nginx listening on port 80 and `proxy_pass http://127.0.0.1:8002`, the app is available at:
 
   ```text
-  http://<VPS_HOST>:8001
+  http://<VPS_HOST>/
   ```
 
 - If not using Nginx, use `http://<VPS_HOST>:8002` (direct to container).

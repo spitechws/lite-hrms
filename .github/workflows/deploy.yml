@@ -76,12 +76,18 @@ jobs:
             echo "Pulling latest image..."
             docker pull ${{ env.REGISTRY }}/${{ github.repository }}:latest
 
-            echo "Stopping and removing existing container (if any)..."
+            echo "Stopping and removing existing app container (hrms-lite, if any)..."
             docker rm -f hrms-lite 2>/dev/null || true
-            # Ensure no other container is bound to host port 8002
-            for id in $(docker ps -q --filter "publish=8002" 2>/dev/null); do docker rm -f $id; done
-            echo "Waiting for port 8002 to be released..."
-            sleep 3
+
+            # Safety check: do NOT touch any other containers. If some other
+            # container is already bound to host port 8002, fail fast so we
+            # don't disturb existing workloads on this VPS.
+            OTHER_8002_IDS=$(docker ps -q --filter "publish=8002" 2>/dev/null || true)
+            if [ -n "$OTHER_8002_IDS" ]; then
+              echo "ERROR: host port 8002 is already used by other container(s): $OTHER_8002_IDS"
+              echo "Please free port 8002 on the VPS or change the port mapping in the workflow."
+              exit 1
+            fi
 
             if [ -n "${{ secrets.DATABASE_URL }}" ]; then
               DATABASE_URL="${{ secrets.DATABASE_URL }}"
