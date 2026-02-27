@@ -37,12 +37,19 @@ Go to **GitHub → Settings → Secrets and variables → Actions → New reposi
 
 ### 2.1 VPS / SSH access
 
-- **`VPS_HOST`**: Public IP or hostname of your VPS (e.g. `203.0.113.10`)
-- **`VPS_USER`**: SSH user (e.g. `ubuntu` or `root`)
+- **`VPS_HOST`**: Public IP or hostname of your VPS (e.g. `76.13.19.154`)
+- **`VPS_USER`**: SSH user (e.g. `devauto_vps_user`)
 - **`VPS_PORT`**: SSH port (usually `22`)
 - **`VPS_SSH_KEY`**: Private SSH key that can log into the VPS (PEM/OPENSSH format, multi-line value)
+- **`DEPLOY_DIR`**: Directory on the VPS where deploy runs (e.g. `/var/www/devauto`)
 
-### 2.2 GHCR (container registry) access
+### 2.2 SonarQube (code analysis)
+
+- **`SONAR_PROJECT_KEY`**: SonarQube project key (e.g. `devauto_backend`)
+- **`SONAR_TOKEN`**: SonarQube user or project token (from your SonarQube server)
+- **`SONAR_HOST_URL`**: SonarQube server URL (e.g. `http://76.13.19.154:9090`)
+
+### 2.3 GHCR (container registry) access
 
 1. Create a **Personal Access Token (PAT)** with `read:packages` and `write:packages` on GitHub.
 2. Add:
@@ -50,16 +57,23 @@ Go to **GitHub → Settings → Secrets and variables → Actions → New reposi
 - **`GHCR_USERNAME`**: Your GitHub username (owner of the PAT)
 - **`GHCR_PAT`**: The Personal Access Token created above
 
-### 2.3 Application configuration (env vars)
+### 2.4 Application configuration (env vars)
 
-These values are injected into the container at runtime:
+These values are injected into the container at runtime.
 
-- **`DATABASE_URL`**  
-  Example:
+**Option A – full database URL**
 
-  ```text
-  mysql+pymysql://db_user:db_password@db_host:3306/hrms_lite
-  ```
+- **`DATABASE_URL`**: Full MySQL connection string, e.g.  
+  `mysql+pymysql://db_user:db_password@db_host:3306/db_name`
+
+**Option B – build from parts (if `DATABASE_URL` is not set)**
+
+- **`DB_HOST`**: MySQL host (e.g. `localhost` or RDS endpoint)
+- **`DB_DATABASE`**: Database name (e.g. `devauto_db`)
+- **`DB_USERNAME`**: Database user (e.g. `devauto_db_user`)
+- **`DB_PASSWORD`**: Database password
+
+**Other app secrets**
 
 - **`SECRET_KEY`**: Long random string used for JWT signing
 - **`JWT_ALGORITHM`**: Usually `HS256`
@@ -112,9 +126,14 @@ The workflow is defined at:
 
 ### 4.1 Trigger
 
-- Runs on every **push to `main`**.
+- Runs on every **push to `master`**.
 
-### 4.2 Job: build-and-push
+### 4.2 Job: sonar
+
+- Runs SonarQube analysis using `SONAR_PROJECT_KEY`, `SONAR_TOKEN`, and `SONAR_HOST_URL`.
+- Uses `sonar-project.properties` in the repo (project key can be overridden by the secret).
+
+### 4.3 Job: build-and-push
 
 - Checks out the repo
 - Logs in to **GHCR** using the built-in `GITHUB_TOKEN`
@@ -125,16 +144,18 @@ The workflow is defined at:
 ghcr.io/<owner>/<repo>:latest
 ```
 
-### 4.3 Job: deploy
+### 4.4 Job: deploy
 
-- Runs after `build-and-push` succeeds
+- Runs after `build-and-push` succeeds.
 - Uses `appleboy/ssh-action` to:
 
   1. SSH into the VPS using `VPS_HOST`, `VPS_USER`, `VPS_PORT`, `VPS_SSH_KEY`
-  2. Log in to GHCR using `GHCR_USERNAME` and `GHCR_PAT`
-  3. Pull the latest image
-  4. Stop and remove any existing `hrms-lite` container
-  5. Run a new container with the environment variables from secrets:
+  2. Create and use `DEPLOY_DIR` on the VPS (e.g. `/var/www/devauto`)
+  3. Log in to GHCR using `GHCR_USERNAME` and `GHCR_PAT`
+  4. Pull the latest image
+  5. Stop and remove any existing `hrms-lite` container
+  6. Run a new container with env vars from secrets:  
+     If `DATABASE_URL` is set, it is used; otherwise `DATABASE_URL` is built from `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD`.
 
   ```bash
   docker run -d --name hrms-lite \
@@ -167,10 +188,10 @@ ghcr.io/<owner>/<repo>:latest
 
    - Add all secrets listed in **Section 2**
 
-4. **Push to `main`**
+4. **Push to `master`**
 
    - Commit the Dockerfile and workflow
-   - Push to `main`
+   - Push to `master`
    - GitHub Actions will:
      - Build and push the Docker image to GHCR
      - SSH to the VPS
@@ -192,7 +213,7 @@ ghcr.io/<owner>/<repo>:latest
 
 To deploy new changes:
 
-1. Commit and push to the `main` branch.
+1. Commit and push to the `master` branch.
 2. Wait for the **“CI/CD - Build and Deploy to VPS”** workflow to finish.
 3. The running container on the VPS will be replaced with the newly built image.
 

@@ -10,6 +10,22 @@ env:
   IMAGE_NAME: ${{ github.repository }}-hrms
 
 jobs:
+  sonar:
+    name: SonarQube analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
@@ -49,6 +65,9 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -e
+            DEPLOY_DIR="${{ secrets.DEPLOY_DIR }}"
+            mkdir -p "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
 
             echo "Logging in to GitHub Container Registry..."
             echo "${{ secrets.GHCR_PAT }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
@@ -60,14 +79,19 @@ jobs:
             docker stop hrms-lite || true
             docker rm hrms-lite || true
 
+            if [ -n "${{ secrets.DATABASE_URL }}" ]; then
+              DATABASE_URL="${{ secrets.DATABASE_URL }}"
+            else
+              DATABASE_URL="mysql+pymysql://${{ secrets.DB_USERNAME }}:${{ secrets.DB_PASSWORD }}@${{ secrets.DB_HOST }}:3306/${{ secrets.DB_DATABASE }}"
+            fi
+
             echo "Starting new container..."
             docker run -d --name hrms-lite \
               -p 8000:8000 \
-              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e DATABASE_URL="$DATABASE_URL" \
               -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
               -e JWT_ALGORITHM="${{ secrets.JWT_ALGORITHM }}" \
               -e ACCESS_TOKEN_EXPIRE_MINUTES="${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" \
               -e REFRESH_TOKEN_EXPIRE_MINUTES="${{ secrets.REFRESH_TOKEN_EXPIRE_MINUTES }}" \
               -e CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}" \
               ${{ env.REGISTRY }}/${{ github.repository }}:latest
-
