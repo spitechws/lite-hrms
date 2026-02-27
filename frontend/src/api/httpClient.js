@@ -1,5 +1,23 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8001/api/v1";
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+
+function resolveApiBaseUrl() {
+  // If a localhost API URL is baked into the build, it only works for local dev.
+  // On a public host, switch to same-origin API path automatically.
+  const isConfiguredLocalhost =
+    configuredApiBaseUrl.includes("127.0.0.1") ||
+    configuredApiBaseUrl.includes("localhost");
+  const isBrowserLocalhost =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "localhost");
+
+  if (isConfiguredLocalhost && !isBrowserLocalhost) {
+    return "/api/v1";
+  }
+  return configuredApiBaseUrl;
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 async function request(path, { method = "GET", headers = {}, body } = {}, token) {
   const doFetch = async (maybeToken) => {
